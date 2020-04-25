@@ -39,16 +39,18 @@ exit: exit
 #### Login
 
 ```
-> . ./fylogin
+> . fylogin
 ```
 
 Generates FYTKOEN env var, and storage it on .fytoken in your home folder.
 Also, storages the refresh_token in .fyrefresh in your home folder, for refreshing the token when necessary.
 
+*Note the dot at the begining, it ensures the export of the environmental variables to the current user session.*
+
 #### Logout
 
 ```
-> . ./fylogout
+> fylogout
 ```
 
 Removes .fytoken and .fyrefresh from your home folder. It forces you, at next time, when tries to make an API call, to login again.
@@ -56,7 +58,7 @@ Removes .fytoken and .fyrefresh from your home folder. It forces you, at next ti
 #### Me
 
 ```
-> . ./fyme
+> fyme
 ```
 
 Retrieves the current user information.
@@ -65,7 +67,7 @@ Retrieves the current user information.
 #### Requests
 
 ```
-> . ./fyrequests
+> fyrequests
 ```
 
 Retrieves the current user requests.
@@ -74,7 +76,7 @@ Retrieves the current user requests.
 #### Offers
 
 ```
-> . ./fyoffers
+> fyoffers
 ```
 
 Retrieves the current user offers.
