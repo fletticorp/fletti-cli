@@ -10,8 +10,8 @@
 
 ### Install
 
-Just run `./install.sh`. It just copies a bounch of scripts into `/usr/local/bin`
-You can uninstall it by running `./uninstall.sh`
+Just run `./install.sh`. It just copies a bounch of scripts into `/usr/local/bin`.
+You can uninstall them by running `./uninstall.sh`
 
 ### Shell
 
@@ -26,14 +26,24 @@ MATÍAS@FletaloYa! () > |
 
 #### Help
 
+It shows the available commands, and it description:
+
+```
+login: Authenticate with Google to use FletaloYa API
+me: Current logged in user information
+requests: Current logged user requests
+offers: Current logged user offers
+exit: exit
+```
+
 #### Login
 
 ```
 > . ./fylogin
 ```
 
-Generates FYTKOEN env var, and storage it on .fytoken.
-Also, storages the refresh_token in .fyrefresh for refreshing the token when necessary.
+Generates FYTKOEN env var, and storage it on .fytoken in your home folder.
+Also, storages the refresh_token in .fyrefresh in your home folder, for refreshing the token when necessary.
 
 #### Logout
 
