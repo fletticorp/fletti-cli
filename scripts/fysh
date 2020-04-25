@@ -1,0 +1,54 @@
+#!/bin/bash                                                                                                    
+
+user=$(fyme|jq -r '.general_profile.nickname')
+input=""
+mode=""
+while [ "$input" != "exit" ]
+do
+    echo -n "$user@FletaloYa! ($mode) > " && read input
+
+    if [ "$input" = "help" ]
+    then
+        echo "login: Authenticate with Google to use FletaloYa API"
+        echo "me: Current logged in user information"
+        echo "requests: Current logged user requests"
+        echo "offers: Current logged user offers"
+        echo "exit: exit"
+    elif [ "$input" = "login" ]
+    then
+        fylogin
+        mode=""
+    elif [ "$input" = "me" ]
+    then
+        fyme|jq
+        mode=""
+    elif [ "$input" = "requests" ]
+    then
+        fyrequests|jq
+        mode=""
+    elif [ "$input" = "offers" ]
+    then
+        fyoffers|jq
+        mode=""
+    elif [ "$input" = "exit" ]
+    then
+        break
+    else
+        if [ "$mode" = "create request" ]
+        then
+            if [ "$input" = "from" ]
+            then
+                echo "ABCD"
+            elif [ "$input" = "to" ]
+            then
+                echo "DCBA"
+            else
+                echo "Invalid"
+            fi
+        else
+            echo "Invalid"
+        fi
+    fi
+done
+exit
+
