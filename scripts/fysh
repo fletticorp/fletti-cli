@@ -16,7 +16,7 @@ do
         echo "exit: exit"
     elif [ "$input" = "login" ]
     then
-        fylogin
+        . fylogin
         mode=""
     elif [ "$input" = "me" ]
     then
