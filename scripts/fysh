@@ -2,7 +2,7 @@
 
 user=$(fyme|jq -r '.general_profile.nickname')
 input=""
-mode=""
+mode="main"
 while [ "$input" != "exit" ]
 do
     echo -n "$user@FletaloYa! ($mode) > " && read input
@@ -24,7 +24,7 @@ do
         mode=""
     elif [ "$input" = "requests" ]
     then
-        fyrequests|jq
+        fyrequests|jq '.requests|values[]|{created:.created, status:.status, description:.description, from: .sections[0].start.address.address_lines."0", to: .sections[0].end.address.address_lines."0", distance: .sections[0].distance, sla: .sections[0].sla, solicitor: .solicitor.nickname, vehicle_category: .vehicle_category}'
         mode=""
     elif [ "$input" = "offers" ]
     then
