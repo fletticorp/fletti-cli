@@ -46,7 +46,7 @@ export FYTOKEN=$(echo $DATA|jq -r '.idToken')
 export FYREFRESH=$(echo $DATA|jq -r '.refreshToken')
 
 # Save Token and RefreshToken
-echo $FYTOKEN > .fytoken
-echo $FYREFRESH > .fyrefresh
+echo $FYTOKEN > $HOME/.fytoken
+echo $FYREFRESH > $HOME/.fyrefresh
 
 echo "Authenticathed! Now you can use our API!"

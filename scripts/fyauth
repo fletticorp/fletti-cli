@@ -4,7 +4,7 @@ if test -f "./fytoken"; then
  . ./fylogin
 fi
 
-export FYTOKEN=$(cat .fytoken)
+export FYTOKEN=$(cat $HOME/.fytoken)
 
 STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "api.fletaloya.com/me?authorization=$FYTOKEN")
 
