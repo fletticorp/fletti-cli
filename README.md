@@ -47,9 +47,35 @@ Also, storages the refresh_token in .fyrefresh in your home folder, for refreshi
 
 #### Logout
 
+```
+> . ./fylogout
+```
+
+Removes .fytoken and .fyrefresh from your home folder. It forces you, at next time, when tries to make an API call, to login again.
+
 #### Me
+
+```
+> . ./fyme
+```
+
+Retrieves the current user information.
+
 
 #### Requests
 
+```
+> . ./fyrequests
+```
+
+Retrieves the current user requests.
+
+
 #### Offers
+
+```
+> . ./fyoffers
+```
+
+Retrieves the current user offers.
 
