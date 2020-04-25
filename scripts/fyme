@@ -1,5 +1,5 @@
 #!/bin/sh
 
-. ./fyauth
+. fyauth
 
 curl -s -X GET "api.fletaloya.com/me?authorization=$FYTOKEN"

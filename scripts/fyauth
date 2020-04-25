@@ -1,7 +1,8 @@
 #!/bin/sh
 
-if test -f "./fytoken"; then
- . ./fylogin
+if [ ! -f "$HOME/.fytoken" ]; then
+eif
+ . fylogin
 fi
 
 export FYTOKEN=$(cat $HOME/.fytoken)
@@ -9,5 +10,5 @@ export FYTOKEN=$(cat $HOME/.fytoken)
 STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "api.fletaloya.com/me?authorization=$FYTOKEN")
 
 if [[ "$STATUS" -ne "200" ]]; then
-    . ./fyrefresh
+    . fyrefresh
 fi
