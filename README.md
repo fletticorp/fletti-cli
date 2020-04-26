@@ -63,6 +63,14 @@ Removes .fytoken and .fyrefresh from your home folder. It forces you, at next ti
 
 Retrieves the current user information.
 
+#### Roles
+
+```
+> fyroles
+```
+
+Retrieves the current user roles.
+
 
 #### Requests
 
