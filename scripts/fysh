@@ -13,6 +13,8 @@ do
         echo "me: Current logged in user information"
         echo "requests: Current logged user requests"
         echo "offers: Current logged user offers"
+        echo "roles: Current logged user roles"
+        echo "create request: Starts a reqeuest flow"
         echo "exit: exit"
     elif [ "$input" = "login" ]
     then
