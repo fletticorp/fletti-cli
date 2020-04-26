@@ -13,6 +13,7 @@ do
         echo "me: Current logged in user information"
         echo "requests: Current logged user requests"
         echo "offers: Current logged user offers"
+        echo "refresh: Refresh token"
         echo "roles: Current logged user roles"
         echo "create request: Starts a reqeuest flow"
         echo "exit: exit"
@@ -31,6 +32,9 @@ do
     elif [ "$input" = "roles" ]
     then
         fyroles|jq '.roles'
+    elif [ "$input" = "refresh" ]
+    then
+        fyrefresh
     elif [ "$input" = "exit" ]
     then
         break
