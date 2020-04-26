@@ -1,6 +1,7 @@
-#!/bin/bash                                                                                                    
+#!/usr/bin/env bash
 
 user=$(fyme|jq -r '.general_profile.nickname')
+
 input=""
 mode="main"
 while [ "$input" != "exit" ]
