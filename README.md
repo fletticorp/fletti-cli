@@ -29,11 +29,16 @@ MATÍAS@FletaloYa! () > |
 It shows the available commands, and it description:
 
 ```
+MATÍAS@FletaloYa! (main) > help
 login: Authenticate with Google to use FletaloYa API
 me: Current logged in user information
 requests: Current logged user requests
 offers: Current logged user offers
+refresh: Refresh token
+roles: Current logged user roles
+create request: Starts a reqeuest flow
 exit: exit
+MATÍAS@FletaloYa! (main) >
 ```
 
 #### Login
@@ -70,6 +75,14 @@ Retrieves the current user information.
 ```
 
 Retrieves the current user roles.
+
+#### Refresh
+
+```
+> fyrefresh
+```
+
+Refresh token
 
 
 #### Requests
