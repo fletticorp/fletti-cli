@@ -1,7 +1,6 @@
 #!/bin/sh
 
 if [ ! -f "$HOME/.fytoken" ]; then
-eif
  . fylogin
 fi
 
