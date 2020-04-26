@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 FYPORT=9876
+URI=${API_URI:-https://api.fletaloya.com}
 
 STATE=$(dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-30)
 NONCE=$(dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-30)
@@ -38,7 +39,7 @@ GOOGLE_ID_TOKEN=${GOOGLE_ID_TOKEN:18}
 FIREBASE_TOKEN=$(curl -s "https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=$API_KEY" -H 'Content-Type: application/json' --data-binary '{"postBody":"id_token='$GOOGLE_ID_TOKEN'&providerId=google.com","requestUri":"http://localhost","returnIdpCredential":true,"returnSecureToken":true}'|jq -r '.idToken')
 
 # Get a custom token with the user roles as claims
-CUSTOM_TOKEN=$(curl -s -X GET "api.fletaloya.com/token?authorization=$FIREBASE_TOKEN" |jq -r '.customToken')
+CUSTOM_TOKEN=$(curl -s -X GET "$URI/token?authorization=$FIREBASE_TOKEN" |jq -r '.customToken')
 
 # Exchange the custom token for an ID Token
 export DATA=$(curl -s "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=$API_KEY" -H 'Content-Type: application/json' --data-binary '{"token":"'$CUSTOM_TOKEN'","returnSecureToken":true}')

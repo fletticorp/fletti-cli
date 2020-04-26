@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ ! -f "$HOME/.fytoken" ]; then
  . fylogin
@@ -6,7 +6,9 @@ fi
 
 export FYTOKEN=$(cat $HOME/.fytoken)
 
-STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "api.fletaloya.com/me?authorization=$FYTOKEN")
+URI=${API_URI:-https://api.fletaloya.com}
+
+STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "$URI/me?authorization=$FYTOKEN")
 
 if [[ "$STATUS" -ne "200" ]]; then
     . fyrefresh
