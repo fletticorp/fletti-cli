@@ -2,6 +2,10 @@
 
 echo "Removing FletaloYa scripts from '/usr/local/bin'"
 
-rm /usr/local/bin/fyauth /usr/local/bin/fylogin /usr/local/bin/fyme /usr/local/bin/fyoffers /usr/local/bin/fyrefresh /usr/local/bin/fyrequests
+for f in $(find scripts -type f -execdir echo '{}' ';')
+do
+    echo Removing /usr/local/bin/$f
+    rm /usr/local/bin/$f
+done
 
 echo "For installing again just run './install.sh'"
