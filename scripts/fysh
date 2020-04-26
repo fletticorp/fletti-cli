@@ -17,25 +17,26 @@ do
     elif [ "$input" = "login" ]
     then
         . fylogin
-        mode=""
     elif [ "$input" = "me" ]
     then
         fyme|jq
-        mode=""
     elif [ "$input" = "requests" ]
     then
         fyrequests|jq '.requests|values[]|{created:.created, status:.status, description:.description, from: .sections[0].start.address.address_lines."0", to: .sections[0].end.address.address_lines."0", distance: .sections[0].distance, sla: .sections[0].sla, solicitor: .solicitor.nickname, vehicle_category: .vehicle_category}'
-        mode=""
     elif [ "$input" = "offers" ]
     then
         fyoffers|jq
-        mode=""
+    elif [ "$input" = "roles" ]
+    then
+        fyroles|jq '.roles'
     elif [ "$input" = "exit" ]
     then
         break
     else
-        if [ "$mode" = "create request" ]
+        if [ "$input" = "create request" ]
         then
+            mode="creating-request"
+            # New loop needed
             if [ "$input" = "from" ]
             then
                 echo "ABCD"
@@ -43,10 +44,10 @@ do
             then
                 echo "DCBA"
             else
-                echo "Invalid"
+                echo "Command $input is invalid. Try 'help'"
             fi
         else
-            echo "Invalid"
+            echo "Command $input is invalid. Try 'help'"
         fi
     fi
 done

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. fyauth
+
+curl -s -X GET "api.fletaloya.com/roles?authorization=$FYTOKEN"
