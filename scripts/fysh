@@ -16,6 +16,7 @@ do
         echo "offers: Current logged user offers"
         echo "refresh: Refresh token"
         echo "roles: Current logged user roles"
+        echo "request price: Calculate the price for a request"
         echo "create request: Starts a reqeuest flow"
         echo "exit: exit"
     elif [ "$input" = "login" ]
@@ -44,18 +45,14 @@ do
         then
             mode="creating-request"
             # New loop needed
-            if [ "$input" = "from" ]
-            then
-                echo "ABCD"
-            elif [ "$input" = "to" ]
-            then
-                echo "DCBA"
-            else
-                echo "Command $input is invalid. Try 'help'"
-            fi
+        elif [ "$input" = "request price" ]
+        then
+            mode="request-price"
+            # New loop needed
         else
             echo "Command $input is invalid. Try 'help'"
         fi
+
     fi
 done
 exit

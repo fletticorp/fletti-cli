@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+#TODO print usage
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+origin=$1
+destination=$2
+description=$3
+sender=$4
+receiver=$5
+vehicle=$6
+
+case $vehicle in
+  "moto")
+    vehicle_category=0
+    ;;
+  "auto")
+    vehicle_category=1
+    ;;
+  "miniflete")
+    vehicle_category=2
+    ;;
+  *)
+    vehicle_category=2
+    ;;
+esac
+
+# replace spaces for + in origin & destination
+origin=$(echo "$origin" | sed 's/\ /+/g')
+destination=$(echo "$destination" | sed 's/\ /+/g')
+
+address1=$(curl -s -X GET "$URI/geocode?address=$origin"|jq '.address')
+addressLine1=$(echo $address1|jq '.formatted_address')
+latitude1=$(echo $address1|jq '.latitude')
+longitude1=$(echo $address1|jq '.longitude')
+
+address2=$(curl -s -X GET "$URI/geocode?address=$destination"|jq '.address')
+addressLine2=$(echo $address2|jq '.formatted_address')
+latitude2=$(echo $address2|jq '.latitude')
+longitude2=$(echo $address2|jq '.longitude')
+
+if [ "$sender" = "me" ]; then
+    sender='{"id":"'$(fyme|jq -r '.id')'"}'
+else
+    sender='{"phone":"'$sender'"}'
+fi
+
+if [ "$receiver" = "me" ]; then
+    receiver='{"id":"'$(fyme|jq -r '.id')'"}'
+else
+    receiver='{"phone":"'$receiver'"}'
+fi
+
+route=$(curl -s -X GET "$URI/route?points=$latitude1,$longitude1,$latitude2,$longitude2")
+
+distance=$(echo $route|jq -r '.distance')
+sla=$(echo $route|jq -r '.commitment')
+sla=$(($sla + 1800))
+
+echo '{"request_source":"user","vehicle_category":'$vehicle_category',"sections":[{"start":{"address":{"address_lines":{"0":"'$addressLine1'"},"latitude":'$latitude1',"longitude":'$longitude1'}, "player":'$sender', "dropins":[{"description":"'$description'","quantity":1,"weight":1}], "dropoffs":[]},"end":{"address":{"address_lines":{"0":"'$addressLine2'"},"latitude":'$latitude2',"longitude":'$longitude2'}, "player":'$receiver', "dropins":[],"dropoffs":[{"description":"'$description'","quantity":1,"weight":1}]},"sla":'$sla',"distance":'$distance'}]}'
