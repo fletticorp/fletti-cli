@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
-API_KEY=AIzaSyB5KMSQHPEeschYJbfvDSNOl3TKLeX0-2w
-
 echo "Refreshing token..."
+
+URI=${API_URI:-https://api.fletaloya.com}
 
 REFRESH_TOKEN=$(cat $HOME/.fyrefresh)
 
-DATA=$(curl -s 'https://securetoken.googleapis.com/v1/token?key='$API_KEY -H 'Content-Type: application/x-www-form-urlencoded' --data 'grant_type=refresh_token&refresh_token='$REFRESH_TOKEN)
+echo $REFRESH_TOKEN
+
+#DATA=$(curl -s -X POST 'https://securetoken.googleapis.com/v1/token?key='$API_KEY -H 'Content-Type: application/x-www-form-urlencoded' --data 'grant_type=refresh_token&refresh_token='$REFRESH_TOKEN)
+DATA=$(curl -s -X GET "$URI/token/refresh?refresh_token=$REFRESH_TOKEN")
+
+echo $DATA
 
 export FYTOKEN=$(echo $DATA|jq -r '.id_token')
 export FYREFRESH=$(echo $DATA|jq -r '.refresh_token')
