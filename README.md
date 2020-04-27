@@ -36,8 +36,8 @@ requests: Current logged user requests
 offers: Current logged user offers
 refresh: Refresh token
 roles: Current logged user roles
+request price: Calculate the price for a request
 create request: Starts a reqeuest flow
-exit: exit
 MATÍAS@FletaloYa! (main) >
 ```
 
@@ -102,3 +102,18 @@ Retrieves the current user requests.
 
 Retrieves the current user offers.
 
+#### Create request
+
+```
+> fynewrequest "origin address" "destination address" "description" "sender:me|cell" "receiver:me|cell" "vehicle:moto|auto|miniflete"
+```
+
+Creates a new request
+
+#### Check request price
+
+```
+> fyprice "origin address" "destination address" "vehicle:moto|auto|miniflete"
+```
+
+Retrieves the price for the request

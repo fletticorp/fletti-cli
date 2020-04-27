@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+#TODO print usage
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+origin=$1
+destination=$2
+vehicle=$3
+
+#defaults: 1
+sections=${4:-1}
+items=${5:-1}
+weight=${6:-1}
+
+case $vehicle in
+  "moto")
+    vehicle_category=0
+    ;;
+  "auto")
+    vehicle_category=1
+    ;;
+  "miniflete")
+    vehicle_category=2
+    ;;
+  *)
+    vehicle_category=2
+    ;;
+esac
+
+# replace spaces for + in origin & destination
+origin=$(echo "$origin" | sed 's/\ /+/g')
+destination=$(echo "$destination" | sed 's/\ /+/g')
+
+address1=$(curl -s -X GET "$URI/geocode?address=$origin"|jq '.address')
+latitude1=$(echo $address1|jq '.latitude')
+longitude1=$(echo $address1|jq '.longitude')
+
+address2=$(curl -s -X GET "$URI/geocode?address=$destination"|jq '.address')
+latitude2=$(echo $address2|jq '.latitude')
+longitude2=$(echo $address2|jq '.longitude')
+
+route=$(curl -s -X GET "$URI/route?points=$latitude1,$longitude1,$latitude2,$longitude2")
+
+distance=$(echo $route|jq -r '.distance')
+
+distance=$(($distance / 1000))
+
+curl -s -X GET "$URI/price?weight=$weight&items=$items&sections=$sections&vehicle=$vehicle_category&distance=$distance"
