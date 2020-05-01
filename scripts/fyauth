@@ -2,14 +2,23 @@
 
 if [ ! -f "$HOME/.fytoken" ]; then
  . fylogin
+elif [ ! -f "$HOME/.fyrefresh" ]; then
+ . fylogin
 fi
 
 export FYTOKEN=$(cat $HOME/.fytoken)
+FYREFRESH=$(cat $HOME/.fyrefresh)
+
+if test "$FYTOKEN" = ""; then
+ . fylogin
+elif test "$FYREFRESH" = ""; then
+ . fylogin
+fi
 
 URI=${API_URI:-https://api.fletaloya.com}
 
 STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "$URI/me?authorization=$FYTOKEN")
 
-if [[ "$STATUS" -ne "200" ]]; then
+if test "$STATUS" = "200"; then
     . fyrefresh
 fi
