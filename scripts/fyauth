@@ -17,8 +17,8 @@ fi
 
 URI=${API_URI:-https://api.fletaloya.com}
 
-STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "$URI/me?authorization=$FYTOKEN")
+STATUS=$(curl --write-out "%{http_code}" --silent --output /dev/null "$URI/me?authorization=$FYTOKEN")
 
-if test "$STATUS" = "200"; then
+if test "$STATUS" != "200"; then
     . fyrefresh
 fi
