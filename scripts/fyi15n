@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+USER_ID=$1
+
+if test -z $USER_ID; then
+    echo "Debe especificar un user id o user nickname"
+    exit -1
+fi
+
+. fyauth
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+# Get a custom token with the user roles as claims
+CUSTOM_TOKEN=$(curl -s -X GET "$URI/impersonalize/$USER_ID/token?authorization=$FYTOKEN" |jq -r '.customToken')
+
+# Exchange the custom token for an ID Token
+export DATA=$(curl -s -X GET "$URI/token/id?custom_token=$CUSTOM_TOKEN"|jq -r '.id_token')
+
+FYTOKEN=$(echo $DATA|jq -r '.idToken')
+FYREFRESH=$(echo $DATA|jq -r '.refreshToken')
+
+# Save Token and RefreshToken
+echo $FYTOKEN > $HOME/$USER_ID.fytoken
+echo $FYREFRESH > $HOME/$USER_ID.fyrefresh
