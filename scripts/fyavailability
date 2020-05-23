@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+shippers=$(curl -s -X POST -d '' "$URI/shippers?authorization=$FYTOKEN"|jq '.available_shippers')
+for zone in $(echo $shippers|jq -r 'keys[]')
+do
+echo $shippers|jq -c '{"'$zone'":[.["'$zone'"][]|{id:.id, created: .created, name:.general_profile.name, nickname: .general_profile.nickname, special_fee: .special_fee, vehicle: .shipper_profile.vehicle_category}]}'
+done

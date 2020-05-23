@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+#TODO print usage
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+curl -s -X POST -d '{"all":false}' "$URI/users?authorization=$FYTOKEN"

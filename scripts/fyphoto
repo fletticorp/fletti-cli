@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if hash jp2a 2>/dev/null; then
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+user=$(fyuser $1)
+
+echo $user|jq -r '.general_profile.photo'|base64 -d | jp2a -
+
+else
+        echo "jp2a binary required! --> https://github.com/cslarsen/jp2a"
+fi

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+status=$1
+
+. fyauth
+
+requests=$(curl -s -X GET "$URI/shipper/requests/$status?authorization=$FYTOKEN"|jq '.shipper_requests')
+
+for id in $(echo $requests|jq -r 'keys[]')
+do
+echo $requests|jq -c '{"'$id'":.["'$id'"]|{created:.created,status:.status,fullname:.fullname,identification_type: .identification_type, identification_number: .identification_number, vehicle_model: .vehicle_model, vehicle_domain: .vehicle_domain, vehicle_category: .vehicle_category}}'
+done
