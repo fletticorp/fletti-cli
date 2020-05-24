@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+URI=${API_URI:-https://api.fletaloya.com}
+
+. fyauth
+
+curl -s -X GET "$URI/request/$1?authorization=$FYTOKEN"
