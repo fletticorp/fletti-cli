@@ -127,7 +127,7 @@ echo "----------------"
 
 echo "Próximos pasos:"
 
-echo "Monitoree el estado de su pedido: fyshow $requestId"
+echo "Monitoree el estado de su pedido: fyshowrequest $requestId"
 
 echo "Envíe ofertas al shipper que desee: fyoffer $requestId <shipper-nick>"
 
