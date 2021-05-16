@@ -7,6 +7,14 @@ URI=${API_URI:-https://api.fletaloya.com}
 request=$1
 nick=$2
 
+if "all" = "$nick" ]; then
+for n in $(curl -s -X GET "$URI/request/$request/availability?authorization=$FYTOKEN"|jq -r '.shippers[].nickname')
+ do
+ fynewoffer OM6cL0YnMEpY6CImGghQm1NJ80givxEXvtNv90fFAWI $n
+ done
+
+else
+
 user=$(curl -s -X GET "$URI/users/$nick?authorization=$FYTOKEN"|jq -r '.id')
 shippers=$(curl -s -X GET "$URI/request/$request/availability?authorization=$FYTOKEN"|jq '.shippers')
 
@@ -30,3 +38,5 @@ echo "Monitoree la oferta: fyshowoffer $offer"
 #then
 #    echo "No hay shippers disponibles en este momento, vuelva a intentarlo mas tarde: fyrequestavailability $request"
 #fi
+
+fi
