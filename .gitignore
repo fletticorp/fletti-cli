@@ -1,0 +1,19 @@
+/bin
+.envrc
+/dist
+/site
+.github/**/node_modules
+/CHANGELOG.md
+.goreleaser.yml
+
+config.yml
+.env
+
+# VS Code
+.vscode
+
+# Idea
+.idea
+
+# macOS
+.DS_Store

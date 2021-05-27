@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-echo "Logged out. Yoy have to run 'fylogin' to make new requests."
-
-rm $HOME/.fytoken
-rm $HOME/.fyrefresh
