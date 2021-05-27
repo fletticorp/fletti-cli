@@ -22,8 +22,8 @@ func main() {
 	var configFile string
 	flag.StringVar(&configFile, "config", "config.yml", "Defines the path, name and extension of the config file")
 	flag.Parse()
-	viper.Set("api_uri", "https://api.fletaloya.com")
-	viper.WriteConfig()
+	//viper.Set("api_uri", "https://api.fletaloya.com")
+	//viper.WriteConfig()
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 		viper.ReadInConfig()

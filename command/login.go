@@ -23,10 +23,10 @@ func init() {
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Get access to FletaloYa! API",
-	Run:   fletaloYaToken,
+	RunE:  fletaloYaToken,
 }
 
-func fletaloYaToken(cmd *cobra.Command, args []string) {
+func fletaloYaToken(cmd *cobra.Command, args []string) error {
 
 	c := make(chan bool, 1)
 
@@ -95,6 +95,7 @@ func fletaloYaToken(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	return nil
 }
 
 func idTokenToGoogleToken(idToken string) (error, string) {
