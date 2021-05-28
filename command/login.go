@@ -98,19 +98,19 @@ func fletaloYaToken() error {
 		token, _ := config.Exchange(oauth2.NoContext, r.FormValue("code"))
 		idToken := token.Extra("id_token").(string)
 
-		err, googleToken := idTokenToGoogleToken(idToken)
+		googleToken, err := idTokenToGoogleToken(idToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
 		}
 
-		err, customToken := googleTokenToCustomToken(googleToken)
+		customToken, err := googleTokenToCustomToken(googleToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
 		}
 
-		err, accessToken, refreshToken := customTokenToToken(customToken)
+		accessToken, refreshToken, err := customTokenToToken(customToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
@@ -150,7 +150,7 @@ func fletaloYaToken() error {
 	return nil
 }
 
-func idTokenToGoogleToken(idToken string) (error, string) {
+func idTokenToGoogleToken(idToken string) (string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -159,7 +159,7 @@ func idTokenToGoogleToken(idToken string) (error, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -168,13 +168,13 @@ func idTokenToGoogleToken(idToken string) (error, string) {
 
 		json.NewDecoder(resp.Body).Decode(&dat)
 
-		return nil, dat["google_token"].(string)
+		return dat["google_token"].(string), nil
 	}
 
-	return fmt.Errorf("Error getting google token: %d", resp.StatusCode), ""
+	return "", fmt.Errorf("Error getting google token: %d", resp.StatusCode)
 }
 
-func googleTokenToCustomToken(googleToken string) (error, string) {
+func googleTokenToCustomToken(googleToken string) (string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -183,7 +183,7 @@ func googleTokenToCustomToken(googleToken string) (error, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -193,13 +193,13 @@ func googleTokenToCustomToken(googleToken string) (error, string) {
 
 		json.NewDecoder(resp.Body).Decode(&dat)
 
-		return nil, dat["customToken"].(string)
+		return dat["customToken"].(string), nil
 	}
 
-	return fmt.Errorf("Error getting custom token: %d", resp.StatusCode), ""
+	return "", fmt.Errorf("Error getting custom token: %d", resp.StatusCode)
 }
 
-func customTokenToToken(customToken string) (error, string, string) {
+func customTokenToToken(customToken string) (string, string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -208,7 +208,7 @@ func customTokenToToken(customToken string) (error, string, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, "", ""
+		return "", "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -223,10 +223,10 @@ func customTokenToToken(customToken string) (error, string, string) {
 		token := t["idToken"].(string)
 		refreshToken := t["refreshToken"].(string)
 
-		return nil, token, refreshToken
+		return token, refreshToken, nil
 	}
 
-	return fmt.Errorf("Error getting token: %d", resp.StatusCode), "", ""
+	return "", "", fmt.Errorf("Error getting token: %d", resp.StatusCode)
 }
 
 func openbrowser(url string) {
@@ -248,7 +248,7 @@ func openbrowser(url string) {
 
 }
 
-func userCustomToken(userID string) (error, string) {
+func userCustomToken(userID string) (string, error) {
 	apiUri := viper.Get("api_uri")
 
 	url := fmt.Sprintf("%s/impersonalize/%s/token?authorization=%s", apiUri, userID, getToken())
@@ -256,7 +256,7 @@ func userCustomToken(userID string) (error, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -266,16 +266,16 @@ func userCustomToken(userID string) (error, string) {
 
 		json.NewDecoder(resp.Body).Decode(&dat)
 
-		return nil, dat["customToken"].(string)
+		return dat["customToken"].(string), nil
 	}
 
-	return fmt.Errorf("Error getting custom token for %s: %d", userID, resp.StatusCode), ""
+	return "", fmt.Errorf("Error getting custom token for %s: %d", userID, resp.StatusCode)
 
 }
 
 func i15n(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
-	err, body := getBody(url, "specific user information")
+	body, err := GET(url, "specific user information")
 
 	if err != nil {
 		return err
@@ -290,12 +290,12 @@ func i15n(cmd *cobra.Command, args []string) error {
 
 	id := doc["id"].(string)
 
-	err, customToken := userCustomToken(id)
+	customToken, err := userCustomToken(id)
 	if err != nil {
 		return err
 	}
 
-	err, accessToken, refreshToken := customTokenToToken(customToken)
+	accessToken, refreshToken, err := customTokenToToken(customToken)
 	if err != nil {
 		return err
 	}

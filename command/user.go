@@ -88,22 +88,49 @@ var avatarCmd = &cobra.Command{
 
 func me(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken())
-	return execute(url, "current user info", true)
+	body, err := GET(url, "current user info")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func roles(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/roles?authorization=%s", getUri(), getToken())
-	return execute(url, "current user roles", true)
+	body, err := GET(url, "current user roles")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func show(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
-	return execute(url, "specific user information", true)
+	body, err := GET(url, "specific user information")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func lkl(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
-	err, body := getBody(url, "specific user information")
+	body, err := GET(url, "specific user information")
 
 	if err != nil {
 		return err
@@ -128,7 +155,7 @@ func lkl(cmd *cobra.Command, args []string) error {
 	w := 150
 	h := 75
 
-	err, image := png(lat, lng, w, h)
+	image, err := png(lat, lng, w, h)
 	if err != nil {
 		return err
 	}
@@ -144,7 +171,7 @@ func lkl(cmd *cobra.Command, args []string) error {
 
 func avatar(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
-	err, body := getBody(url, "specific user information")
+	body, err := GET(url, "specific user information")
 
 	if err != nil {
 		return err
@@ -160,7 +187,7 @@ func avatar(cmd *cobra.Command, args []string) error {
 	id := doc["id"].(string)
 
 	url = fmt.Sprintf("%s/photos/%s/avatar?authorization=%s", getUri(), id, getToken())
-	err, body = getBody(url, "specific user avatar")
+	body, err = GET(url, "specific user avatar")
 
 	if err != nil {
 		return err
@@ -202,7 +229,7 @@ func avatar(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func png(lat, lng float64, w, h int) (error, *image.Image) {
+func png(lat, lng float64, w, h int) (*image.Image, error) {
 
 	ctx := sm.NewContext()
 	ctx.SetSize(w, h)
@@ -216,7 +243,7 @@ func png(lat, lng float64, w, h int) (error, *image.Image) {
 
 	img, err := ctx.Render()
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	/*
@@ -225,7 +252,7 @@ func png(lat, lng float64, w, h int) (error, *image.Image) {
 		}
 	*/
 
-	return nil, &img
+	return &img, nil
 }
 
 func scaleImage(img image.Image, w int) (*image.Image, int, int) {

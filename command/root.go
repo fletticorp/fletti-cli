@@ -1,6 +1,8 @@
 package command
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -30,7 +32,7 @@ ________________.___. _________ ___ ___
  \___  /    / ______/_______  /\___|_  /
      \/     \/              \/       \/
 
-https://github.com/fletaloya/fletalo-cli 
+https://github.com/fletaloya/fletalo-cli
 `,
 }
 
@@ -103,31 +105,46 @@ func getRefreshToken() string {
 	return viper.GetString(key)
 }
 
-func getBody(url, description string) (error, string) {
+func GET(url, description string) (string, error) {
 	response, err := http.Get(url)
 
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {
-			return fyerrors.ErrorUnauthorized, ""
+			return "", fyerrors.ErrorUnauthorized
 		}
 		if err != nil {
-			return err, ""
+			return "", err
 		} else {
-			return fmt.Errorf("Error getting %s: %d", description, response.StatusCode), ""
+			return "", fmt.Errorf("Error getting %s: %d", description, response.StatusCode)
 		}
 	}
 	defer response.Body.Close()
 	bytes, _ := ioutil.ReadAll(response.Body)
-	return nil, string(bytes)
+	return string(bytes), nil
 
 }
 
-func execute(url, description string, output bool) error {
-	err, body := getBody(url, description)
-	if err == nil {
-		if output {
-			fmt.Printf("%v\n", body)
+func POST(url string, body map[string]interface{}, description string) (string, error) {
+
+	jsonData, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+
+	response, err := http.Post(url, "application/json", bytes.NewReader(jsonData))
+
+	if response.StatusCode != 200 {
+		if response.StatusCode == 401 {
+			return "", fyerrors.ErrorUnauthorized
+		}
+		if err != nil {
+			return "", err
+		} else {
+			return "", fmt.Errorf("Error getting %s: %d", description, response.StatusCode)
 		}
 	}
-	return err
+	defer response.Body.Close()
+	bytes, _ := ioutil.ReadAll(response.Body)
+	return string(bytes), nil
+
 }
