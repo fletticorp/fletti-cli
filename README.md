@@ -3,12 +3,12 @@
 ```
 Welcome to the FletaloYA cli
 
-___________.____    _____.___. _________ ___ ___
-\_   _____/|    |   \__  |   |/   _____//   |   \
- |    __)  |    |    /   |   |\_____  \/    ~    \
- |     \   |    |___ \____   |/        \    Y    /
- \___  /   |_______ \/ ______/_______  /\___|_  /
-     \/            \/\/              \/       \/
+________________.___. _________ ___ ___
+\_   _____/\__  |   |/   _____//   |   \
+ |    __)   /   |   |\_____  \/    ~    \
+ |     \    \____   |/        \    Y    /
+ \___  /    / ______/_______  /\___|_  /
+     \/     \/              \/       \/
 
 https://github.com/fletaloya/fletalo-cli
 
@@ -20,6 +20,7 @@ flysh --help
 
 Available Commands:
   help        Help about any command
+  i15n        Impersonalize as other user (nickname)
   login       Get access to FletaloYa! API
   meli        Contains various meli subcommands
   token       Contains various token subcommands
