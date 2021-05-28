@@ -10,6 +10,7 @@ import (
 func init() {
 	rootCmd.AddCommand(shippersCmd)
 	shippersCmd.AddCommand(availabilityCmd)
+	shippersCmd.AddCommand(shipperRequestsCmd)
 }
 
 var shippersCmd = &cobra.Command{
@@ -26,6 +27,15 @@ var availabilityCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          availability,
+}
+
+var shipperRequestsCmd = &cobra.Command{
+	Use:           "requests [status]",
+	Short:         "Return shipper requests",
+	Args:          cobra.MinimumNArgs(1),
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          shipperRequests,
 }
 
 func availability(cmd *cobra.Command, args []string) error {
@@ -68,6 +78,26 @@ func availability(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("%v\n", string(jsonString))
+
+	return nil
+}
+
+func shipperRequests(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/shipper/requests/%s?authorization=%s", getUri(), args[0], getToken())
+	body, err := GET(url, "shipper requests")
+
+	if err != nil {
+		return err
+	}
+
+	var doc map[string]interface{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\n", body)
 
 	return nil
 }

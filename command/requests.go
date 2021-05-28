@@ -45,7 +45,7 @@ var listCmd = &cobra.Command{
 }
 
 var showRequestCmd = &cobra.Command{
-	Use:           "show",
+	Use:           "show [requestID]",
 	Short:         "Show request details",
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -54,7 +54,7 @@ var showRequestCmd = &cobra.Command{
 }
 
 var requestOffersCmd = &cobra.Command{
-	Use:           "offers",
+	Use:           "offers [requestID]",
 	Short:         "Show request offers",
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -63,7 +63,7 @@ var requestOffersCmd = &cobra.Command{
 }
 
 var requestDetailCmd = &cobra.Command{
-	Use:           "detail",
+	Use:           "detail [requestID]",
 	Short:         "Show request details",
 	SilenceErrors: true,
 	SilenceUsage:  true,

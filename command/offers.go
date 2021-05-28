@@ -30,8 +30,9 @@ var listOffersCmd = &cobra.Command{
 }
 
 var offerDetailsCmd = &cobra.Command{
-	Use:           "detail",
+	Use:           "detail [offerID]",
 	Short:         "Show offer details",
+	Args:          cobra.MinimumNArgs(1),
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          offerDetails,
