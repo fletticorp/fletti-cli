@@ -2,10 +2,13 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	flyerrs "github.com/fletaloya/fletalo-cli/errors"
+	fyerrors "github.com/fletaloya/fletalo-cli/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -69,4 +72,26 @@ func getRefreshToken() string {
 		log.Fatal("Refresh Token not found. Please login.")
 	}
 	return refreshToken
+}
+
+func execute(url, description string, output bool) error {
+	response, err := http.Get(url)
+
+	if response.StatusCode != 200 {
+		if response.StatusCode == 401 {
+			return fyerrors.ErrorUnauthorized
+		}
+		if err != nil {
+			return err
+		} else {
+			return fmt.Errorf("Error getting %s: %d", description, response.StatusCode)
+		}
+	} else {
+		if output {
+			defer response.Body.Close()
+			bytes, _ := ioutil.ReadAll(response.Body)
+			fmt.Printf("%v\n", string(bytes))
+		}
+	}
+	return nil
 }

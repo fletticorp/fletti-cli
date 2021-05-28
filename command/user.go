@@ -2,17 +2,14 @@ package command
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/spf13/cobra"
-
-	fyerrors "github.com/fletaloya/fletalo-cli/errors"
 )
 
 func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.AddCommand(meCmd)
+	userCmd.AddCommand(rolesCmd)
 }
 
 var userCmd = &cobra.Command{
@@ -30,21 +27,20 @@ var meCmd = &cobra.Command{
 	RunE:          me,
 }
 
+var rolesCmd = &cobra.Command{
+	Use:           "roles",
+	Short:         "Return current user roles",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          roles,
+}
+
 func me(cmd *cobra.Command, args []string) error {
-	response, err := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
-	if response.StatusCode != 200 {
-		if response.StatusCode == 401 {
-			return fyerrors.ErrorUnauthorized
-		}
-		if err != nil {
-			return err
-		} else {
-			return fmt.Errorf("Error getting user: %d", response.StatusCode)
-		}
-	} else {
-		defer response.Body.Close()
-		bytes, _ := ioutil.ReadAll(response.Body)
-		fmt.Printf("%v\n", string(bytes))
-	}
-	return nil
+	url := fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken())
+	return execute(url, "current user info", true)
+}
+
+func roles(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/roles?authorization=%s", getUri(), getToken())
+	return execute(url, "current user roles", true)
 }
