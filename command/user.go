@@ -145,7 +145,12 @@ func lkl(cmd *cobra.Command, args []string) error {
 
 	lkl := doc["last_known_location"].(map[string]interface{})
 
-	fmt.Printf("Last knwon location: %s\n\n", lkl)
+	jsonString, err := json.Marshal(lkl)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Last knwon location: %s\n\n", jsonString)
 
 	point := lkl["point"].(map[string]interface{})
 
@@ -237,7 +242,7 @@ func png(lat, lng float64, w, h int) (*image.Image, error) {
 		sm.NewMarker(
 			s2.LatLngFromDegrees(lat, lng),
 			color.RGBA{0xff, 0, 0, 0xff},
-			12.0,
+			10.0,
 		),
 	)
 
