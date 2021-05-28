@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	flyerrs "github.com/fletaloya/fletalo-cli/errors"
 	fyerrors "github.com/fletaloya/fletalo-cli/errors"
 
 	"github.com/spf13/cobra"
@@ -16,10 +15,11 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Short:         "Command line interface for FletaloYA services",
-	Example:       "flysh --help",
-	SilenceErrors: true,
-	SilenceUsage:  true,
+	Short:            "Command line interface for FletaloYA services",
+	Example:          "flysh --help",
+	PersistentPreRun: informImpersonalize,
+	SilenceErrors:    true,
+	SilenceUsage:     true,
 	Long: `
 Welcome to the FletaloYA cli
 
@@ -36,16 +36,44 @@ https://github.com/fletaloya/fletalo-cli
 
 const defaultURI = "https://api.fletaloya.com"
 
+var (
+	Info = Teal
+	Warn = Yellow
+	Fata = Red
+)
+
+var (
+	Black   = Color("\033[1;30m%s\033[0m")
+	Red     = Color("\033[1;31m%s\033[0m")
+	Green   = Color("\033[1;32m%s\033[0m")
+	Yellow  = Color("\033[1;33m%s\033[0m")
+	Purple  = Color("\033[1;34m%s\033[0m")
+	Magenta = Color("\033[1;35m%s\033[0m")
+	Teal    = Color("\033[1;36m%s\033[0m")
+	White   = Color("\033[1;37m%s\033[0m")
+)
+
+func Color(colorString string) func(...interface{}) string {
+	sprint := func(args ...interface{}) string {
+		return fmt.Sprintf(colorString,
+			fmt.Sprint(args...))
+	}
+	return sprint
+}
+
 //Execute root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		if err == flyerrs.ErrorUnauthorized {
-			Auth()
-			defer Execute()
-		} else {
-			fmt.Printf("Error: %s\n", err.Error())
-			os.Exit(1)
-		}
+		fmt.Printf("Error: %s\n", err.Error())
+		os.Exit(1)
+	}
+}
+
+func informImpersonalize(cmd *cobra.Command, args []string) {
+	if impersonalize == "me" {
+		log.Println(Info(fmt.Sprintf("Running as %s", "me")))
+	} else {
+		log.Println(Warn(fmt.Sprintf("Running impersonalized as: %s", impersonalize)))
 	}
 }
 
@@ -59,19 +87,20 @@ func getUri() string {
 }
 
 func getToken() string {
-	token := viper.GetString("access_token")
-	if token == "" {
-		log.Fatal("Token not found. Please login.")
+	key := "access_token"
+	if impersonalize != "me" {
+		key = fmt.Sprintf("%s.%s", impersonalize, key)
 	}
-	return token
+
+	return viper.GetString(key)
 }
 
 func getRefreshToken() string {
-	refreshToken := viper.GetString("refresh_token")
-	if refreshToken == "" {
-		log.Fatal("Refresh Token not found. Please login.")
+	key := "refresh_token"
+	if impersonalize != "me" {
+		key = fmt.Sprintf("%s.%s", impersonalize, key)
 	}
-	return refreshToken
+	return viper.GetString(key)
 }
 
 func getBody(url, description string) (error, string) {

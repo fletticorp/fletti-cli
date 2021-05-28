@@ -13,13 +13,15 @@ func init() {
 	meliCmd.AddCommand(meliPurchasesCmd)
 	meliCmd.AddCommand(meliSalesCmd)
 	meliCmd.AddCommand(meliTokenCmd)
+	meliCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
 var meliCmd = &cobra.Command{
-	Use:           "meli",
-	Short:         "Contains various meli subcommands",
-	SilenceErrors: true,
-	SilenceUsage:  true,
+	Use:               "meli",
+	Short:             "Contains various meli subcommands",
+	PersistentPreRunE: ensureAuth,
+	SilenceErrors:     true,
+	SilenceUsage:      true,
 }
 
 var meliMeCmd = &cobra.Command{

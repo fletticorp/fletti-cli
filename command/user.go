@@ -23,6 +23,7 @@ import (
 )
 
 var ASCIISTR = "MND8OZ$7I?+=~:,.."
+var impersonalize string
 
 func init() {
 	rootCmd.AddCommand(userCmd)
@@ -30,14 +31,16 @@ func init() {
 	userCmd.AddCommand(rolesCmd)
 	userCmd.AddCommand(showCmd)
 	userCmd.AddCommand(lklCmd)
-	userCmd.AddCommand(photoCmd)
+	userCmd.AddCommand(avatarCmd)
+	userCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
 var userCmd = &cobra.Command{
-	Use:           "user",
-	Short:         "Contains various user subcommands",
-	SilenceErrors: true,
-	SilenceUsage:  true,
+	Use:               "user",
+	Short:             "Contains various user subcommands",
+	PersistentPreRunE: ensureAuth,
+	SilenceErrors:     true,
+	SilenceUsage:      true,
 }
 
 var meCmd = &cobra.Command{
@@ -74,13 +77,13 @@ var lklCmd = &cobra.Command{
 	RunE:          lkl,
 }
 
-var photoCmd = &cobra.Command{
-	Use:           "photo [nickname]",
-	Short:         "Show specific user avatar photo",
+var avatarCmd = &cobra.Command{
+	Use:           "avatar [nickname]",
+	Short:         "Show specific user avatar",
 	Args:          cobra.MinimumNArgs(1),
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	RunE:          photo,
+	RunE:          avatar,
 }
 
 func me(cmd *cobra.Command, args []string) error {
@@ -139,7 +142,7 @@ func lkl(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func photo(cmd *cobra.Command, args []string) error {
+func avatar(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
 	err, body := getBody(url, "specific user information")
 

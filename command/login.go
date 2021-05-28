@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(i15nCmd)
 }
 
 var loginCmd = &cobra.Command{
@@ -28,36 +30,52 @@ var loginCmd = &cobra.Command{
 	RunE:          login,
 }
 
+var i15nCmd = &cobra.Command{
+	Use:           "i15n",
+	Short:         "Impersonalize as other user (nickname)",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          i15n,
+}
+
 func login(cmd *cobra.Command, args []string) error {
 	return fletaloYaToken()
 }
 
-func IsAuth() bool {
-	response, _ := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
-	if response.StatusCode == 200 {
-		return true
-	}
-	return false
-}
+func ensureAuth(cmd *cobra.Command, args []string) error {
 
-func Auth() error {
-	if IsAuth() {
+	informImpersonalize(cmd, args)
+
+	if isAuth() {
 		return nil
 	}
 
 	log.Println("Renewing autheorization")
 
 	if getRefreshToken() != "" {
-		err := RefreshToken()
+		err := refreshToken()
 		if err != nil {
-			return fletaloYaToken()
+			return err
 		}
-		if IsAuth() {
+		if isAuth() {
 			return nil
 		}
 	}
 
-	return fletaloYaToken()
+	if impersonalize != "me" {
+		if getToken() == "" && getRefreshToken() == "" {
+			return fmt.Errorf("%s was not authenticated, run 'i15n' first.", impersonalize)
+		}
+	}
+	return errors.New("Authorization couldn't be renewed.")
+}
+
+func isAuth() bool {
+	response, _ := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
+	if response.StatusCode == 200 {
+		return true
+	}
+	return false
 }
 
 func fletaloYaToken() error {
@@ -66,8 +84,8 @@ func fletaloYaToken() error {
 
 	config := &oauth2.Config{
 		RedirectURL:  "http://localhost:9876",
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		ClientID:     viper.GetString("GOOGLE_CLIENT_ID"),
+		ClientSecret: viper.GetString("GOOGLE_CLIENT_SECRET"),
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/gmail.readonly"},
 		Endpoint:     google.Endpoint,
 	}
@@ -228,4 +246,64 @@ func openbrowser(url string) {
 		log.Fatal(err)
 	}
 
+}
+
+func userCustomToken(userID string) (error, string) {
+	apiUri := viper.Get("api_uri")
+
+	url := fmt.Sprintf("%s/impersonalize/%s/token?authorization=%s", apiUri, userID, getToken())
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return err, ""
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+
+		var dat map[string]interface{}
+
+		json.NewDecoder(resp.Body).Decode(&dat)
+
+		return nil, dat["customToken"].(string)
+	}
+
+	return fmt.Errorf("Error getting custom token for %s: %d", userID, resp.StatusCode), ""
+
+}
+
+func i15n(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
+	err, body := getBody(url, "specific user information")
+
+	if err != nil {
+		return err
+	}
+
+	doc := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return err
+	}
+
+	id := doc["id"].(string)
+
+	err, customToken := userCustomToken(id)
+	if err != nil {
+		return err
+	}
+
+	err, accessToken, refreshToken := customTokenToToken(customToken)
+	if err != nil {
+		return err
+	}
+
+	viper.Set(fmt.Sprintf("%s.access_token", args[0]), accessToken)
+	viper.Set(fmt.Sprintf("%s.refresh_token", args[0]), refreshToken)
+
+	viper.WriteConfig()
+
+	return nil
 }
