@@ -21,12 +21,44 @@ func init() {
 }
 
 var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Get access to FletaloYa! API",
-	RunE:  fletaloYaToken,
+	Use:           "login",
+	Short:         "Get access to FletaloYa! API",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          login,
 }
 
-func fletaloYaToken(cmd *cobra.Command, args []string) error {
+func login(cmd *cobra.Command, args []string) error {
+	return fletaloYaToken()
+}
+
+func IsAuth() bool {
+	response, _ := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
+	if response.StatusCode == 200 {
+		return true
+	}
+	return false
+}
+
+func Auth() error {
+	if IsAuth() {
+		return nil
+	}
+
+	if getRefreshToken() != "" {
+		err := RefreshToken()
+		if err != nil {
+			return fletaloYaToken()
+		}
+		if IsAuth() {
+			return nil
+		}
+	}
+
+	return fletaloYaToken()
+}
+
+func fletaloYaToken() error {
 
 	c := make(chan bool, 1)
 

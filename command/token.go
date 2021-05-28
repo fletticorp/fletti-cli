@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -17,22 +16,32 @@ func init() {
 }
 
 var tokenCmd = &cobra.Command{
-	Use:   "token",
-	Short: "Contains various token subcommands",
+	Use:           "token",
+	Short:         "Contains various token subcommands",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 var refreshCmd = &cobra.Command{
-	Use:   "refresh",
-	Short: "Refresh user token",
-	Run:   refresh,
+	Use:           "refresh",
+	Short:         "Refresh user token",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          refresh,
 }
 
-func refresh(cmd *cobra.Command, args []string) {
+func refresh(cmd *cobra.Command, args []string) error {
+	return RefreshToken()
+}
+
+func RefreshToken() error {
+
 	refreshToken := getRefreshToken()
 	uri := getUri()
+
 	response, err := http.Get(fmt.Sprintf("%s/token/refresh?refresh_token=%s", uri, refreshToken))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer response.Body.Close()
 	bytes, _ := ioutil.ReadAll(response.Body)
@@ -40,7 +49,7 @@ func refresh(cmd *cobra.Command, args []string) {
 	var data map[string]interface{}
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	viper.Set("access_token", data["id_token"])
@@ -48,5 +57,5 @@ func refresh(cmd *cobra.Command, args []string) {
 
 	viper.WriteConfig()
 
-	fmt.Println("Token refreshed!")
+	return nil
 }

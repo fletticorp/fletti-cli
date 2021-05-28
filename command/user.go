@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -17,24 +16,31 @@ func init() {
 }
 
 var userCmd = &cobra.Command{
-	Use:   "user",
-	Short: "Contains various user subcommands",
+	Use:           "user",
+	Short:         "Contains various user subcommands",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 var meCmd = &cobra.Command{
-	Use:   "me",
-	Short: "Return current user info",
-	RunE:  me,
+	Use:           "me",
+	Short:         "Return current user info",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          me,
 }
 
 func me(cmd *cobra.Command, args []string) error {
 	response, err := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
-	fmt.Printf("Error code: %d - err: %v", response.StatusCode, err)
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {
 			return fyerrors.ErrorUnauthorized
 		}
-		log.Fatal(err)
+		if err != nil {
+			return err
+		} else {
+			return fmt.Errorf("Error getting user: %d", response.StatusCode)
+		}
 	} else {
 		defer response.Body.Close()
 		bytes, _ := ioutil.ReadAll(response.Body)

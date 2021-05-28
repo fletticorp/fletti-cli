@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,8 +13,10 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Short:   "Command line interface for FletaloYA services",
-	Example: "flysh --help",
+	Short:         "Command line interface for FletaloYA services",
+	Example:       "flysh --help",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 	Long: `
 Welcome to the FletaloYA cli
 
@@ -34,14 +35,12 @@ const defaultURI = "https://api.fletaloya.com"
 
 //Execute root command
 func Execute() {
-	fmt.Println("Executing")
 	if err := rootCmd.Execute(); err != nil {
-		if errors.Is(err, flyerrs.ErrorUnauthorized) {
-			fmt.Println("logging in")
-			loginCmd.Execute()
-			Execute()
+		if err == flyerrs.ErrorUnauthorized {
+			Auth()
+			defer Execute()
 		} else {
-			fmt.Println(err)
+			fmt.Printf("Error: %s\n", err.Error())
 			os.Exit(1)
 		}
 	}
