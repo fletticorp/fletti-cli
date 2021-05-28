@@ -26,18 +26,18 @@ var ASCIISTR = "MND8OZ$7I?+=~:,.."
 var impersonalize string
 
 func init() {
-	rootCmd.AddCommand(userCmd)
-	userCmd.AddCommand(meCmd)
-	userCmd.AddCommand(rolesCmd)
-	userCmd.AddCommand(showCmd)
-	userCmd.AddCommand(lklCmd)
-	userCmd.AddCommand(avatarCmd)
-	userCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
+	rootCmd.AddCommand(usersCmd)
+	usersCmd.AddCommand(meCmd)
+	usersCmd.AddCommand(rolesCmd)
+	usersCmd.AddCommand(showUserCmd)
+	usersCmd.AddCommand(lklCmd)
+	usersCmd.AddCommand(avatarCmd)
+	usersCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
-var userCmd = &cobra.Command{
-	Use:               "user",
-	Short:             "Contains various user subcommands",
+var usersCmd = &cobra.Command{
+	Use:               "users",
+	Short:             "Contains various users subcommands",
 	PersistentPreRunE: ensureAuth,
 	SilenceErrors:     true,
 	SilenceUsage:      true,
@@ -59,13 +59,13 @@ var rolesCmd = &cobra.Command{
 	RunE:          roles,
 }
 
-var showCmd = &cobra.Command{
+var showUserCmd = &cobra.Command{
 	Use:           "show [nickname]",
 	Short:         "Return specific user information",
 	Args:          cobra.MinimumNArgs(1),
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	RunE:          show,
+	RunE:          showUser,
 }
 
 var lklCmd = &cobra.Command{
@@ -114,7 +114,7 @@ func roles(cmd *cobra.Command, args []string) error {
 
 }
 
-func show(cmd *cobra.Command, args []string) error {
+func showUser(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
 	body, err := GET(url, "specific user information")
 
