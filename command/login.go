@@ -45,6 +45,8 @@ func Auth() error {
 		return nil
 	}
 
+	log.Println("Renewing autheorization")
+
 	if getRefreshToken() != "" {
 		err := RefreshToken()
 		if err != nil {
