@@ -30,7 +30,7 @@ var availabilityCmd = &cobra.Command{
 
 func availability(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/shippers?authorization=%s", getUri(), getToken())
-	body, err := POST(url, map[string]interface{}{}, "current user info")
+	body, err := POST(url, map[string]interface{}{}, "shippers availability")
 
 	if err != nil {
 		return err
