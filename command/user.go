@@ -1,12 +1,14 @@
 package command
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"image/color"
+	"image/jpeg"
 
 	sm "github.com/flopp/go-staticmaps"
 	"github.com/golang/geo/s2"
@@ -28,6 +30,7 @@ func init() {
 	userCmd.AddCommand(rolesCmd)
 	userCmd.AddCommand(showCmd)
 	userCmd.AddCommand(lklCmd)
+	userCmd.AddCommand(photoCmd)
 }
 
 var userCmd = &cobra.Command{
@@ -69,6 +72,15 @@ var lklCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          lkl,
+}
+
+var photoCmd = &cobra.Command{
+	Use:           "photo [nickname]",
+	Short:         "Show specific user avatar photo",
+	Args:          cobra.MinimumNArgs(1),
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          photo,
 }
 
 func me(cmd *cobra.Command, args []string) error {
@@ -118,9 +130,69 @@ func lkl(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	image, w, h = ScaleImage(*image, w)
+	image, w, h = scaleImage(*image, w)
 
-	ascii := Convert2Ascii(*image, w, h)
+	ascii := convert2Ascii(*image, w, h)
+
+	fmt.Println(string(ascii))
+
+	return nil
+}
+
+func photo(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
+	err, body := getBody(url, "specific user information")
+
+	if err != nil {
+		return err
+	}
+
+	doc := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return err
+	}
+
+	id := doc["id"].(string)
+
+	url = fmt.Sprintf("%s/photos/%s/avatar?authorization=%s", getUri(), id, getToken())
+	err, body = getBody(url, "specific user avatar")
+
+	if err != nil {
+		return err
+	}
+
+	doc = map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return err
+	}
+
+	photo := doc["photo"].(string)
+
+	if photo == "" {
+		return fmt.Errorf("User %s has no avatar.", args[0])
+	}
+
+	unbased, err := base64.StdEncoding.DecodeString(string(photo))
+	if err != nil {
+		return err
+	}
+
+	res := bytes.NewReader(unbased)
+
+	image, err := jpeg.Decode(res)
+	if err != nil {
+		return err
+	}
+
+	w := 50
+
+	scaled, w, h := scaleImage(image, w)
+
+	ascii := convert2Ascii(*scaled, w, h)
 
 	fmt.Println(string(ascii))
 
@@ -153,14 +225,14 @@ func png(lat, lng float64, w, h int) (error, *image.Image) {
 	return nil, &img
 }
 
-func ScaleImage(img image.Image, w int) (*image.Image, int, int) {
+func scaleImage(img image.Image, w int) (*image.Image, int, int) {
 	sz := img.Bounds()
 	h := (sz.Max.Y * w * 10) / (sz.Max.X * 16)
 	img = resize.Resize(uint(w), uint(h), img, resize.Lanczos3)
 	return &img, w, h
 }
 
-func Convert2Ascii(img image.Image, w, h int) []byte {
+func convert2Ascii(img image.Image, w, h int) []byte {
 	table := []byte(ASCIISTR)
 	buf := new(bytes.Buffer)
 
