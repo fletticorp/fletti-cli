@@ -9,6 +9,7 @@ import (
 func init() {
 	rootCmd.AddCommand(offersCmd)
 	offersCmd.AddCommand(listOffersCmd)
+	offersCmd.AddCommand(offerDetailsCmd)
 	offersCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
@@ -28,6 +29,14 @@ var listOffersCmd = &cobra.Command{
 	RunE:          listOffers,
 }
 
+var offerDetailsCmd = &cobra.Command{
+	Use:           "detail",
+	Short:         "Show offer details",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          offerDetails,
+}
+
 func listOffers(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/offers?authorization=%s", getUri(), getToken())
 	body, err := GET(url, "offers")
@@ -39,5 +48,9 @@ func listOffers(cmd *cobra.Command, args []string) error {
 	fmt.Printf("%v\n", body)
 
 	return nil
+}
 
+func offerDetails(cmd *cobra.Command, args []string) error {
+	//TODO
+	return nil
 }

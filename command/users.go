@@ -32,6 +32,7 @@ func init() {
 	usersCmd.AddCommand(showUserCmd)
 	usersCmd.AddCommand(lklCmd)
 	usersCmd.AddCommand(avatarCmd)
+	usersCmd.AddCommand(newUsersCmd)
 	usersCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
@@ -84,6 +85,14 @@ var avatarCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          avatar,
+}
+
+var newUsersCmd = &cobra.Command{
+	Use:           "new",
+	Short:         "List new users",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          newUsers,
 }
 
 func me(cmd *cobra.Command, args []string) error {
@@ -281,4 +290,17 @@ func convert2Ascii(img image.Image, w, h int) []byte {
 		_ = buf.WriteByte('\n')
 	}
 	return buf.Bytes()
+}
+
+func newUsers(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/users?authorization=%s", getUri(), getToken())
+	body, err := POST(url, map[string]interface{}{"all": false}, "new users")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\n", body)
+
+	return nil
 }
