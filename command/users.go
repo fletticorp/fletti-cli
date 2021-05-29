@@ -7,19 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"image/color"
 	"image/jpeg"
 
-	sm "github.com/flopp/go-staticmaps"
-	"github.com/golang/geo/s2"
-
-	"github.com/nfnt/resize"
-
 	"bytes"
-	"image"
 	_ "image/jpeg"
 	_ "image/png"
-	"reflect"
 )
 
 var ASCIISTR = "MND8OZ$7I?+=~:,.."
@@ -169,7 +161,7 @@ func lkl(cmd *cobra.Command, args []string) error {
 	w := 150
 	h := 75
 
-	image, err := png(lat, lng, w, h)
+	image, err := mapToPng(lat, lng, w, h)
 	if err != nil {
 		return err
 	}
@@ -241,55 +233,6 @@ func avatar(cmd *cobra.Command, args []string) error {
 	fmt.Println(string(ascii))
 
 	return nil
-}
-
-func png(lat, lng float64, w, h int) (*image.Image, error) {
-
-	ctx := sm.NewContext()
-	ctx.SetSize(w, h)
-	ctx.AddObject(
-		sm.NewMarker(
-			s2.LatLngFromDegrees(lat, lng),
-			color.RGBA{0xff, 0, 0, 0xff},
-			10.0,
-		),
-	)
-
-	img, err := ctx.Render()
-	if err != nil {
-		return nil, err
-	}
-
-	/*
-		if err := gg.SavePNG("my-map.png", img); err != nil {
-			return err, nil
-		}
-	*/
-
-	return &img, nil
-}
-
-func scaleImage(img image.Image, w int) (*image.Image, int, int) {
-	sz := img.Bounds()
-	h := (sz.Max.Y * w * 10) / (sz.Max.X * 16)
-	img = resize.Resize(uint(w), uint(h), img, resize.Lanczos3)
-	return &img, w, h
-}
-
-func convert2Ascii(img image.Image, w, h int) []byte {
-	table := []byte(ASCIISTR)
-	buf := new(bytes.Buffer)
-
-	for i := 0; i < h; i++ {
-		for j := 0; j < w; j++ {
-			g := color.GrayModel.Convert(img.At(j, i))
-			y := reflect.ValueOf(g).FieldByName("Y").Uint()
-			pos := int(y * 16 / 255)
-			_ = buf.WriteByte(table[pos])
-		}
-		_ = buf.WriteByte('\n')
-	}
-	return buf.Bytes()
 }
 
 func newUsers(cmd *cobra.Command, args []string) error {

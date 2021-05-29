@@ -3,13 +3,23 @@ package command
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/color"
 
 	"github.com/spf13/cobra"
+
+	sm "github.com/flopp/go-staticmaps"
+	"github.com/golang/geo/s2"
 )
+
+var width int
+var height int
 
 func init() {
 	rootCmd.AddCommand(mapsCmd)
-	mapsCmd.AddCommand(zoneCmd)
+	mapsCmd.AddCommand(geocodeCmd)
+	geocodeCmd.Flags().IntVar(&width, "width", 150, "Output map width (px)")
+	geocodeCmd.Flags().IntVar(&height, "height", 75, "Output map height (px)")
 }
 
 var mapsCmd = &cobra.Command{
@@ -20,16 +30,16 @@ var mapsCmd = &cobra.Command{
 	SilenceUsage:  true,
 }
 
-var zoneCmd = &cobra.Command{
-	Use:           "zone [address]",
-	Short:         "Return address golocalized zone",
+var geocodeCmd = &cobra.Command{
+	Use:           "geocode [address]",
+	Short:         "Return address golocalized address",
 	Args:          cobra.MinimumNArgs(1),
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	RunE:          zone,
+	RunE:          geocode,
 }
 
-func zone(cmd *cobra.Command, args []string) error {
+func geocode(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/geocode?address=%s", getUri(), args[0])
 	body, err := GET(url, "address geocode")
 
@@ -73,5 +83,36 @@ func zone(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("%s\n", jsonString)
 
+	image, err := mapToPng(latitude, longitude, width, height)
+	if err != nil {
+		return err
+	}
+
+	image, w, h := scaleImage(*image, width)
+
+	ascii := convert2Ascii(*image, w, h)
+
+	fmt.Println(string(ascii))
+
 	return nil
+}
+
+func mapToPng(lat, lng float64, w, h int) (*image.Image, error) {
+
+	ctx := sm.NewContext()
+	ctx.SetSize(w, h)
+	ctx.AddObject(
+		sm.NewMarker(
+			s2.LatLngFromDegrees(lat, lng),
+			color.RGBA{0xff, 0, 0, 0xff},
+			10.0,
+		),
+	)
+
+	img, err := ctx.Render()
+	if err != nil {
+		return nil, err
+	}
+
+	return &img, nil
 }
