@@ -26,6 +26,7 @@ func init() {
 	requestsCmd.AddCommand(requestOffersCmd)
 	requestsCmd.AddCommand(requestDetailCmd)
 	requestsCmd.AddCommand(priceCmd)
+	requestsCmd.AddCommand(requestAvailabilityCmd)
 	requestsCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 	lastCmd.PersistentFlags().StringVarP(&since, "since", "s", "1d", "Specifies timeframe to search last requests")
 }
@@ -89,6 +90,15 @@ var priceCmd = &cobra.Command{
 	PreRun:        nil,
 	Args:          cobra.MinimumNArgs(3),
 	RunE:          price,
+}
+
+var requestAvailabilityCmd = &cobra.Command{
+	Use:           "availability [requestID]",
+	Short:         "Show request availability",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	Args:          cobra.MinimumNArgs(1),
+	RunE:          requestAvailability,
 }
 
 func last(cmd *cobra.Command, args []string) error {
@@ -254,5 +264,45 @@ func price(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("%s\n", priceBody)
+	return nil
+}
+
+func requestAvailability(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/request/%s/availability?authorization=%s", getUri(), args[0], getToken())
+	availabilityBody, err := GET(url, "request availability")
+	if err != nil {
+		return err
+	}
+
+	availability := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(availabilityBody), &availability)
+	if err != nil {
+		return err
+	}
+
+	shippers := availability["shippers"].(map[string]interface{})
+
+	out := map[string]interface{}{}
+
+	for key, value := range shippers {
+
+		v := value.(map[string]interface{})
+
+		commitment := int(v["commitment"].(float64) / 60)
+		reputation := v["reputation"].(int)
+
+		shp := map[string]interface{}{"nickname": v["nickname"], "commitment": commitment, "reputation": reputation}
+		out[key] = shp
+
+	}
+
+	jsonString, err := json.Marshal(out)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\n", jsonString)
+
 	return nil
 }
