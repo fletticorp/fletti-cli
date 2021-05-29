@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -40,34 +41,21 @@ var geocodeCmd = &cobra.Command{
 }
 
 func geocode(cmd *cobra.Command, args []string) error {
-	url := fmt.Sprintf("%s/geocode?address=%s", getUri(), args[0])
-	body, err := GET(url, "address geocode")
+
+	address, latitude, longitude, err := latlng(args[0])
+
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("%s/zones/%f/%f", getUri(), latitude, longitude)
+	body, err := GET(url, "address zone")
 
 	if err != nil {
 		return err
 	}
 
 	doc := map[string]interface{}{}
-
-	err = json.Unmarshal([]byte(body), &doc)
-	if err != nil {
-		return err
-	}
-
-	doc = doc["address"].(map[string]interface{})
-
-	address := doc["formatted_address"].(string)
-	latitude := doc["latitude"].(float64)
-	longitude := doc["longitude"].(float64)
-
-	url = fmt.Sprintf("%s/zones/%f/%f", getUri(), latitude, longitude)
-	body, err = GET(url, "address zone")
-
-	if err != nil {
-		return err
-	}
-
-	doc = map[string]interface{}{}
 
 	err = json.Unmarshal([]byte(body), &doc)
 	if err != nil {
@@ -115,4 +103,31 @@ func mapToPng(lat, lng float64, w, h int) (*image.Image, error) {
 	}
 
 	return &img, nil
+}
+
+func latlng(address string) (string, float64, float64, error) {
+
+	address = strings.ReplaceAll(address, " ", "+")
+
+	url := fmt.Sprintf("%s/geocode?address=%s", getUri(), address)
+	body, err := GET(url, "address geocode")
+
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	doc := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	doc = doc["address"].(map[string]interface{})
+
+	formattedAddress := doc["formatted_address"].(string)
+	latitude := doc["latitude"].(float64)
+	longitude := doc["longitude"].(float64)
+
+	return formattedAddress, latitude, longitude, nil
 }
