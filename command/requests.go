@@ -268,20 +268,11 @@ func price(cmd *cobra.Command, args []string) error {
 }
 
 func requestAvailability(cmd *cobra.Command, args []string) error {
-	url := fmt.Sprintf("%s/request/%s/availability?authorization=%s", getUri(), args[0], getToken())
-	availabilityBody, err := GET(url, "request availability")
+
+	shippers, err := requestAvailableShippers(args[0])
 	if err != nil {
 		return err
 	}
-
-	availability := map[string]interface{}{}
-
-	err = json.Unmarshal([]byte(availabilityBody), &availability)
-	if err != nil {
-		return err
-	}
-
-	shippers := availability["shippers"].(map[string]interface{})
 
 	out := map[string]interface{}{}
 
@@ -305,4 +296,23 @@ func requestAvailability(cmd *cobra.Command, args []string) error {
 	fmt.Printf("%s\n", jsonString)
 
 	return nil
+}
+
+func requestAvailableShippers(requestID string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/request/%s/availability?authorization=%s", getUri(), requestID, getToken())
+	availabilityBody, err := GET(url, "request availability")
+	if err != nil {
+		return nil, err
+	}
+
+	availability := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(availabilityBody), &availability)
+	if err != nil {
+		return nil, err
+	}
+
+	shippers := availability["shippers"].(map[string]interface{})
+
+	return shippers, nil
 }
