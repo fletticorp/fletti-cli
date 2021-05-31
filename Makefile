@@ -1,5 +1,5 @@
 GOCMD=go
-BINARY_NAME=flysh
+BINARY_NAME=fysh
 
 all: clean lint test build
 
