@@ -27,6 +27,7 @@ func init() {
 	requestsCmd.AddCommand(requestDetailCmd)
 	requestsCmd.AddCommand(priceCmd)
 	requestsCmd.AddCommand(requestAvailabilityCmd)
+	requestsCmd.AddCommand(newRequestCmd)
 	requestsCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 	lastCmd.PersistentFlags().StringVarP(&since, "since", "s", "1d", "Specifies timeframe to search last requests")
 }
@@ -99,6 +100,15 @@ var requestAvailabilityCmd = &cobra.Command{
 	SilenceUsage:  true,
 	Args:          cobra.MinimumNArgs(1),
 	RunE:          requestAvailability,
+}
+
+var newRequestCmd = &cobra.Command{
+	Use:           "new [requestID]",
+	Short:         "Create new request",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	Args:          cobra.MinimumNArgs(1),
+	RunE:          newRequest,
 }
 
 func last(cmd *cobra.Command, args []string) error {
@@ -242,19 +252,7 @@ func price(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var vehicle VehicleCategory
-
-	switch args[2] {
-	case "bici":
-		vehicle = VehicleCategoryBici
-	case "auto":
-		vehicle = VehicleCategoryCar
-	case "miniflete":
-		vehicle = VehicleCategoryVan
-	case "camion":
-		vehicle = VehicleCategoryTruck
-	}
-
+	vehicle := resolveVehicle(args[2])
 	distance := int(route["distance"].(float64) / 1000)
 
 	url = fmt.Sprintf("%s/price?weight=%d&items=%d&sections=%d&vehicle=%d&distance=%d", getUri(), 1, 1, 1, vehicle, distance)
@@ -265,6 +263,24 @@ func price(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("%s\n", priceBody)
 	return nil
+}
+
+func resolveVehicle(vehicleStr string) VehicleCategory {
+
+	var vehicle VehicleCategory
+
+	switch vehicleStr {
+	case "bici":
+		vehicle = VehicleCategoryBici
+	case "auto":
+		vehicle = VehicleCategoryCar
+	case "miniflete":
+		vehicle = VehicleCategoryVan
+	case "camion":
+		vehicle = VehicleCategoryTruck
+	}
+
+	return vehicle
 }
 
 func requestAvailability(cmd *cobra.Command, args []string) error {
@@ -315,4 +331,77 @@ func requestAvailableShippers(requestID string) (map[string]interface{}, error) 
 	shippers := availability["shippers"].(map[string]interface{})
 
 	return shippers, nil
+}
+
+func newRequest(cmd *cobra.Command, args []string) error {
+	description := args[0]
+
+	address1, latitude1, longitude1, err := latlng(args[1])
+	if err != nil {
+		return err
+	}
+	address2, latitude2, longitude2, err := latlng(args[2])
+	if err != nil {
+		return err
+	}
+
+	vehicle := resolveVehicle(args[3])
+
+	me, err := findMe()
+	if err != nil {
+		return err
+	}
+
+	var senderBody map[string]interface{}
+	if args[4] == "me" {
+		senderBody = map[string]interface{}{"user": me["id"].(string)}
+	} else {
+		senderBody = map[string]interface{}{"phone": args[4]}
+	}
+	var receiverBody map[string]interface{}
+	if args[5] == "me" {
+		receiverBody = map[string]interface{}{"user": me["id"].(string)}
+	} else {
+		receiverBody = map[string]interface{}{"phone": args[5]}
+	}
+
+	url := fmt.Sprintf("%s/route?points=%f,%f,%f,%f", getUri(), latitude1, longitude1, latitude2, longitude2)
+	body, err := GET(url, "route info")
+
+	if err != nil {
+		return err
+	}
+
+	route := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &route)
+	if err != nil {
+		return err
+	}
+
+	distance := route["distance"].(float64)
+	sla := route["commitment"].(float64) + 1800
+
+	return createNewRequest(description, address1, latitude1, longitude1, senderBody, address2, latitude2, longitude2, receiverBody, vehicle, sla, distance)
+}
+
+func createNewRequest(description string, addressFrom string, latitudeFrom, longitudeFrom float64, sender map[string]interface{}, addressTo string, latitudeTo, longitudeTo float64, receiver map[string]interface{}, vehicle VehicleCategory, sla, distance float64) error {
+
+	address1 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressFrom}, "latitude": latitudeFrom, "longitude": longitudeFrom}
+	address2 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressTo}, "latitude": latitudeTo, "longitude": longitudeTo}
+	items := []map[string]interface{}{{"description": description, "quantity": 1, "weight": 1}}
+	sections := []map[string]interface{}{map[string]interface{}{"start": map[string]interface{}{"address": address1, "player": sender, "dropins": items, "dropoffs": []map[string]interface{}{}}, "end": map[string]interface{}{"address": address2, "player": receiver, "dropins": []map[string]interface{}{}, "dropoffs": items}}}
+
+	postBody := map[string]interface{}{"vehicle_category": vehicle, "sections": sections, "sla": sla, "distance": distance}
+
+	url := fmt.Sprintf("%s/request?authorization=%s", getUri(), getToken())
+	body, err := POST(url, postBody, "new request")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\v", body)
+
+	return nil
 }

@@ -101,6 +101,24 @@ func me(cmd *cobra.Command, args []string) error {
 
 }
 
+func findMe() (map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken())
+	body, err := GET(url, "current user info")
+
+	if err != nil {
+		return nil, err
+	}
+
+	me := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &me)
+	if err != nil {
+		return nil, err
+	}
+
+	return me, nil
+}
+
 func roles(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/roles?authorization=%s", getUri(), getToken())
 	body, err := GET(url, "current user roles")
