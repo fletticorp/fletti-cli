@@ -13,13 +13,15 @@ func init() {
 	meliCmd.AddCommand(meliPurchasesCmd)
 	meliCmd.AddCommand(meliSalesCmd)
 	meliCmd.AddCommand(meliTokenCmd)
+	meliCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
 var meliCmd = &cobra.Command{
-	Use:           "meli",
-	Short:         "Contains various meli subcommands",
-	SilenceErrors: true,
-	SilenceUsage:  true,
+	Use:               "meli",
+	Short:             "Contains various meli subcommands",
+	PersistentPreRunE: ensureAuth,
+	SilenceErrors:     true,
+	SilenceUsage:      true,
 }
 
 var meliMeCmd = &cobra.Command{
@@ -64,25 +66,69 @@ var meliTokenCmd = &cobra.Command{
 
 func meliMe(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/me?authorization=%s", getUri(), getToken())
-	return execute(url, "meli current user", true)
+	body, err := GET(url, "meli current user")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
 }
 
 func meliCustomer(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/customer?authorization=%s", getUri(), getToken())
-	return execute(url, "meli customer", true)
+	body, err := GET(url, "meli customer")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func meliPurchases(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/purchases?authorization=%s", getUri(), getToken())
-	return execute(url, "meli purchases", true)
+	body, err := GET(url, "meli purchases")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func meliSales(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/sales?authorization=%s", getUri(), getToken())
-	return execute(url, "meli sales", true)
+	body, err := GET(url, "meli sales")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }
 
 func meliToken(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/token?authorization=%s", getUri(), getToken())
-	return execute(url, "meli token", true)
+	body, err := GET(url, "meli token")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
 }

@@ -24,6 +24,7 @@ func main() {
 	flag.Parse()
 	//viper.Set("api_uri", "https://api.fletaloya.com")
 	//viper.WriteConfig()
+	viper.AutomaticEnv()
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 		viper.ReadInConfig()
