@@ -31,10 +31,10 @@ var refreshCmd = &cobra.Command{
 }
 
 func refresh(cmd *cobra.Command, args []string) error {
-	return RefreshToken()
+	return refreshToken()
 }
 
-func RefreshToken() error {
+func refreshToken() error {
 
 	refreshToken := getRefreshToken()
 	uri := getUri()
@@ -52,8 +52,16 @@ func RefreshToken() error {
 		return err
 	}
 
-	viper.Set("access_token", data["id_token"])
-	viper.Set("refresh_token", data["refresh_token"])
+	atKey := "access_token"
+	rtKey := "refresh_token"
+
+	if impersonalize != "me" {
+		atKey = fmt.Sprintf("%s.%s", impersonalize, atKey)
+		rtKey = fmt.Sprintf("%s.%s", impersonalize, rtKey)
+	}
+
+	viper.Set(atKey, data["id_token"])
+	viper.Set(rtKey, data["refresh_token"])
 
 	viper.WriteConfig()
 
