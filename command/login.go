@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(i15nCmd)
 }
 
 var loginCmd = &cobra.Command{
@@ -28,34 +30,52 @@ var loginCmd = &cobra.Command{
 	RunE:          login,
 }
 
+var i15nCmd = &cobra.Command{
+	Use:           "i15n",
+	Short:         "Impersonalize as other user (nickname)",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          i15n,
+}
+
 func login(cmd *cobra.Command, args []string) error {
 	return fletaloYaToken()
 }
 
-func IsAuth() bool {
+func ensureAuth(cmd *cobra.Command, args []string) error {
+
+	informImpersonalize(cmd, args)
+
+	if isAuth() {
+		return nil
+	}
+
+	log.Println("Renewing autheorization")
+
+	if getRefreshToken() != "" {
+		err := refreshToken()
+		if err != nil {
+			return err
+		}
+		if isAuth() {
+			return nil
+		}
+	}
+
+	if impersonalize != "me" {
+		if getToken() == "" && getRefreshToken() == "" {
+			return fmt.Errorf("%s was not authenticated, run 'i15n' first.", impersonalize)
+		}
+	}
+	return errors.New("Authorization couldn't be renewed.")
+}
+
+func isAuth() bool {
 	response, _ := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
 	if response.StatusCode == 200 {
 		return true
 	}
 	return false
-}
-
-func Auth() error {
-	if IsAuth() {
-		return nil
-	}
-
-	if getRefreshToken() != "" {
-		err := RefreshToken()
-		if err != nil {
-			return fletaloYaToken()
-		}
-		if IsAuth() {
-			return nil
-		}
-	}
-
-	return fletaloYaToken()
 }
 
 func fletaloYaToken() error {
@@ -64,8 +84,8 @@ func fletaloYaToken() error {
 
 	config := &oauth2.Config{
 		RedirectURL:  "http://localhost:9876",
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		ClientID:     viper.GetString("GOOGLE_CLIENT_ID"),
+		ClientSecret: viper.GetString("GOOGLE_CLIENT_SECRET"),
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/gmail.readonly"},
 		Endpoint:     google.Endpoint,
 	}
@@ -78,19 +98,19 @@ func fletaloYaToken() error {
 		token, _ := config.Exchange(oauth2.NoContext, r.FormValue("code"))
 		idToken := token.Extra("id_token").(string)
 
-		err, googleToken := idTokenToGoogleToken(idToken)
+		googleToken, err := idTokenToGoogleToken(idToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
 		}
 
-		err, customToken := googleTokenToCustomToken(googleToken)
+		customToken, err := googleTokenToCustomToken(googleToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
 		}
 
-		err, accessToken, refreshToken := customTokenToToken(customToken)
+		accessToken, refreshToken, err := customTokenToToken(customToken)
 		if err != nil {
 			log.Fatalf("error: %s", err.Error())
 			os.Exit(1)
@@ -130,7 +150,7 @@ func fletaloYaToken() error {
 	return nil
 }
 
-func idTokenToGoogleToken(idToken string) (error, string) {
+func idTokenToGoogleToken(idToken string) (string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -139,7 +159,7 @@ func idTokenToGoogleToken(idToken string) (error, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -148,13 +168,13 @@ func idTokenToGoogleToken(idToken string) (error, string) {
 
 		json.NewDecoder(resp.Body).Decode(&dat)
 
-		return nil, dat["google_token"].(string)
+		return dat["google_token"].(string), nil
 	}
 
-	return fmt.Errorf("Error getting google token: %d", resp.StatusCode), ""
+	return "", fmt.Errorf("Error getting google token: %d", resp.StatusCode)
 }
 
-func googleTokenToCustomToken(googleToken string) (error, string) {
+func googleTokenToCustomToken(googleToken string) (string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -163,7 +183,7 @@ func googleTokenToCustomToken(googleToken string) (error, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -173,13 +193,13 @@ func googleTokenToCustomToken(googleToken string) (error, string) {
 
 		json.NewDecoder(resp.Body).Decode(&dat)
 
-		return nil, dat["customToken"].(string)
+		return dat["customToken"].(string), nil
 	}
 
-	return fmt.Errorf("Error getting custom token: %d", resp.StatusCode), ""
+	return "", fmt.Errorf("Error getting custom token: %d", resp.StatusCode)
 }
 
-func customTokenToToken(customToken string) (error, string, string) {
+func customTokenToToken(customToken string) (string, string, error) {
 
 	apiUri := viper.Get("api_uri")
 
@@ -188,7 +208,7 @@ func customTokenToToken(customToken string) (error, string, string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, "", ""
+		return "", "", err
 	}
 
 	if resp.StatusCode == http.StatusOK {
@@ -203,10 +223,10 @@ func customTokenToToken(customToken string) (error, string, string) {
 		token := t["idToken"].(string)
 		refreshToken := t["refreshToken"].(string)
 
-		return nil, token, refreshToken
+		return token, refreshToken, nil
 	}
 
-	return fmt.Errorf("Error getting token: %d", resp.StatusCode), "", ""
+	return "", "", fmt.Errorf("Error getting token: %d", resp.StatusCode)
 }
 
 func openbrowser(url string) {
@@ -226,4 +246,64 @@ func openbrowser(url string) {
 		log.Fatal(err)
 	}
 
+}
+
+func userCustomToken(userID string) (string, error) {
+	apiUri := viper.Get("api_uri")
+
+	url := fmt.Sprintf("%s/impersonalize/%s/token?authorization=%s", apiUri, userID, getToken())
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+
+		var dat map[string]interface{}
+
+		json.NewDecoder(resp.Body).Decode(&dat)
+
+		return dat["customToken"].(string), nil
+	}
+
+	return "", fmt.Errorf("Error getting custom token for %s: %d", userID, resp.StatusCode)
+
+}
+
+func i15n(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/users/%s?authorization=%s", getUri(), args[0], getToken())
+	body, err := GET(url, "specific user information")
+
+	if err != nil {
+		return err
+	}
+
+	doc := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &doc)
+	if err != nil {
+		return err
+	}
+
+	id := doc["id"].(string)
+
+	customToken, err := userCustomToken(id)
+	if err != nil {
+		return err
+	}
+
+	accessToken, refreshToken, err := customTokenToToken(customToken)
+	if err != nil {
+		return err
+	}
+
+	viper.Set(fmt.Sprintf("%s.access_token", args[0]), accessToken)
+	viper.Set(fmt.Sprintf("%s.refresh_token", args[0]), refreshToken)
+
+	viper.WriteConfig()
+
+	return nil
 }
