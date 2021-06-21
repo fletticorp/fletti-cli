@@ -6,6 +6,9 @@ all: clean lint test build
 build:
 	go build -o bin/$(BINARY_NAME) .
 
+install: build
+	cp bin/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
+
 clean:
 	rm -rf bin
 
