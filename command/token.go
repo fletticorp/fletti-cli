@@ -13,6 +13,7 @@ import (
 func init() {
 	rootCmd.AddCommand(tokenCmd)
 	tokenCmd.AddCommand(refreshCmd)
+	tokenCmd.AddCommand(showCmd)
 }
 
 var tokenCmd = &cobra.Command{
@@ -28,6 +29,14 @@ var refreshCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          refresh,
+}
+
+var showCmd = &cobra.Command{
+	Use:           "show",
+	Short:         "Show user token",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          show,
 }
 
 func refresh(cmd *cobra.Command, args []string) error {
@@ -64,6 +73,14 @@ func refreshToken() error {
 	viper.Set(rtKey, data["refresh_token"])
 
 	viper.WriteConfig()
+
+	return nil
+}
+
+func show(cmd *cobra.Command, args []string) error {
+
+	token := getToken()
+	fmt.Printf("%v\n", token)
 
 	return nil
 }

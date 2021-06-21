@@ -10,6 +10,7 @@ func init() {
 	rootCmd.AddCommand(meliCmd)
 	meliCmd.AddCommand(meliMeCmd)
 	meliCmd.AddCommand(meliCustomerCmd)
+	meliCmd.AddCommand(meliCustomerCardsCmd)
 	meliCmd.AddCommand(meliPurchasesCmd)
 	meliCmd.AddCommand(meliSalesCmd)
 	meliCmd.AddCommand(meliTokenCmd)
@@ -38,6 +39,14 @@ var meliCustomerCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          meliCustomer,
+}
+
+var meliCustomerCardsCmd = &cobra.Command{
+	Use:           "cards",
+	Short:         "Return current meli user customer cards",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	RunE:          meliCustomerCards,
 }
 
 var meliPurchasesCmd = &cobra.Command{
@@ -80,6 +89,20 @@ func meliMe(cmd *cobra.Command, args []string) error {
 func meliCustomer(cmd *cobra.Command, args []string) error {
 	url := fmt.Sprintf("%s/ml/customer?authorization=%s", getUri(), getToken())
 	body, err := GET(url, "meli customer")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", body)
+
+	return nil
+
+}
+
+func meliCustomerCards(cmd *cobra.Command, args []string) error {
+	url := fmt.Sprintf("%s/ml/cards?authorization=%s", getUri(), getToken())
+	body, err := GET(url, "meli customer cards")
 
 	if err != nil {
 		return err

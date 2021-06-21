@@ -67,6 +67,11 @@ func ensureAuth(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s was not authenticated, run 'i15n' first.", impersonalize)
 		}
 	}
+
+	if err := fletaloYaToken(); err == nil {
+		return nil
+	}
+
 	return errors.New("Authorization couldn't be renewed.")
 }
 
