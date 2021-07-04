@@ -113,6 +113,10 @@ func getRefreshToken() string {
 func GET(url, description string) (string, error) {
 	response, err := http.Get(url)
 
+	if err != nil {
+		return "", err
+	}
+
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {
 			return "", fyerrors.ErrorUnauthorized
@@ -137,6 +141,10 @@ func POST(url string, body map[string]interface{}, description string) (string, 
 	}
 
 	response, err := http.Post(url, "application/json", bytes.NewReader(jsonData))
+
+	if err != nil {
+		return "", err
+	}
 
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {
