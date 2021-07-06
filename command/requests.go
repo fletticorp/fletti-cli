@@ -292,15 +292,14 @@ func requestAvailability(cmd *cobra.Command, args []string) error {
 
 	out := map[string]interface{}{}
 
-	for key, value := range shippers {
+	for _, value := range shippers {
 
 		v := value.(map[string]interface{})
-
 		commitment := int(v["commitment"].(float64) / 60)
-		reputation := v["reputation"].(int)
+		reputation := v["reputation"].(float64)
 
 		shp := map[string]interface{}{"nickname": v["nickname"], "commitment": commitment, "reputation": reputation}
-		out[key] = shp
+		out[v["id"].(string)] = shp
 
 	}
 
@@ -314,7 +313,7 @@ func requestAvailability(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func requestAvailableShippers(requestID string) (map[string]interface{}, error) {
+func requestAvailableShippers(requestID string) ([]interface{}, error) {
 	url := fmt.Sprintf("%s/request/%s/availability?authorization=%s", getUri(), requestID, getToken())
 	availabilityBody, err := GET(url, "request availability")
 	if err != nil {
@@ -328,7 +327,7 @@ func requestAvailableShippers(requestID string) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	shippers := availability["shippers"].(map[string]interface{})
+	shippers := availability["shippers"].([]interface{})
 
 	return shippers, nil
 }
