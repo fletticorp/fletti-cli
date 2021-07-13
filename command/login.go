@@ -13,8 +13,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 func init() {
@@ -87,52 +85,55 @@ func fletaloYaToken() error {
 
 	c := make(chan bool, 1)
 
-	config := &oauth2.Config{
-		RedirectURL:  "http://localhost:9876",
-		ClientID:     viper.GetString("GOOGLE_CLIENT_ID"),
-		ClientSecret: viper.GetString("GOOGLE_CLIENT_SECRET"),
-		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/gmail.readonly"},
-		Endpoint:     google.Endpoint,
+	url, port, err := resolveCallbackUrl(port)
+	if err != nil {
+		return err
 	}
 
 	m := http.NewServeMux()
-	s := http.Server{Addr: ":9876", Handler: m}
+	s := http.Server{Addr: fmt.Sprintf(":%d", port), Handler: m}
 
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		token, _ := config.Exchange(oauth2.NoContext, r.FormValue("code"))
-		idToken := token.Extra("id_token").(string)
+		code := r.FormValue("code")
 
-		googleToken, err := idTokenToGoogleToken(idToken)
-		if err != nil {
-			log.Fatalf("error: %s", err.Error())
-			os.Exit(1)
+		if code != "" {
+
+			idToken, err := exchangeIdToken(code)
+			if err != nil {
+				log.Fatalf("error: %s", err.Error())
+				os.Exit(1)
+			}
+
+			googleToken, err := idTokenToGoogleToken(idToken)
+			if err != nil {
+				log.Fatalf("error: %s", err.Error())
+				os.Exit(1)
+			}
+
+			customToken, err := googleTokenToCustomToken(googleToken)
+			if err != nil {
+				log.Fatalf("error: %s", err.Error())
+				os.Exit(1)
+			}
+
+			accessToken, refreshToken, err := customTokenToToken(customToken)
+			if err != nil {
+				log.Fatalf("error: %s", err.Error())
+				os.Exit(1)
+			}
+
+			viper.Set("access_token", accessToken)
+			viper.Set("refresh_token", refreshToken)
+
+			viper.WriteConfig()
+
+			fmt.Fprintf(w, "Successful Login!")
+
+			c <- true
 		}
-
-		customToken, err := googleTokenToCustomToken(googleToken)
-		if err != nil {
-			log.Fatalf("error: %s", err.Error())
-			os.Exit(1)
-		}
-
-		accessToken, refreshToken, err := customTokenToToken(customToken)
-		if err != nil {
-			log.Fatalf("error: %s", err.Error())
-			os.Exit(1)
-		}
-
-		viper.Set("access_token", accessToken)
-		viper.Set("refresh_token", refreshToken)
-
-		viper.WriteConfig()
-
-		fmt.Fprintf(w, "Successful Login!")
-
-		c <- true
 
 	})
-
-	url := config.AuthCodeURL("pseudo-random")
 
 	openbrowser(url)
 
@@ -148,11 +149,58 @@ func fletaloYaToken() error {
 		var err error
 
 		if err = s.Shutdown(context.Background()); err != nil {
-			log.Fatalf("server Shutdown Failed:%+s", err)
+			log.Fatalf("server Shutdown Failed: %s", err)
 		}
 	}
 
 	return nil
+}
+
+func resolveCallbackUrl(port int) (string, int, error) {
+	apiUri := viper.Get("api_uri")
+
+	url := fmt.Sprintf("%s/auth/url?port=%d", apiUri, port)
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return "", 0, err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+		var dat map[string]interface{}
+
+		json.NewDecoder(resp.Body).Decode(&dat)
+
+		return dat["url"].(string), int(dat["port"].(float64)), nil
+	}
+
+	return "", 0, fmt.Errorf("Error getting google token: %d", resp.StatusCode)
+}
+
+func exchangeIdToken(code string) (string, error) {
+	apiUri := viper.Get("api_uri")
+
+	url := fmt.Sprintf("%s/auth/exchange?code=%s", apiUri, code)
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+		var dat map[string]interface{}
+
+		json.NewDecoder(resp.Body).Decode(&dat)
+
+		return dat["id_token"].(string), nil
+	}
+
+	return "", fmt.Errorf("Error getting google token: %d", resp.StatusCode)
+
 }
 
 func idTokenToGoogleToken(idToken string) (string, error) {
