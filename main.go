@@ -17,6 +17,7 @@ func main() {
 	viper.AutomaticEnv()
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
+		viper.AddConfigPath("$HOME/.fletaloya")
 		viper.ReadInConfig()
 	}
 	command.Execute()
