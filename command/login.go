@@ -74,7 +74,10 @@ func ensureAuth(cmd *cobra.Command, args []string) error {
 }
 
 func isAuth() bool {
-	response, _ := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
+	response, err := http.Get(fmt.Sprintf("%s/me?authorization=%s", getUri(), getToken()))
+	if err != nil {
+		return false
+	}
 	if response.StatusCode == 200 {
 		return true
 	}
