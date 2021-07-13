@@ -10,15 +10,14 @@ import (
 func main() {
 
 	var configFile string
-	flag.StringVar(&configFile, "config", "config.yml", "Defines the path, name and extension of the config file")
+	flag.StringVar(&configFile, "config", "config", "Defines the path, name and extension of the config file")
 	flag.Parse()
-	//viper.Set("api_uri", "https://api.fletaloya.com")
-	//viper.WriteConfig()
 	viper.AutomaticEnv()
 	if configFile != "" {
-		viper.SetConfigFile(configFile)
-		viper.AddConfigPath("$HOME/.fletaloya")
-		viper.ReadInConfig()
+		viper.SetConfigName(configFile)
+		viper.SetConfigType("yml")
+		viper.AddConfigPath("$HOME/.fletaloya/")
+		_ = viper.ReadInConfig()
 	}
 	command.Execute()
 }
