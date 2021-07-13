@@ -85,7 +85,7 @@ func fletaloYaToken() error {
 
 	c := make(chan bool, 1)
 
-	url, port, err := resolveCallbackUrl(port)
+	url, port, err := resolveCallbackUrl()
 	if err != nil {
 		return err
 	}
@@ -156,10 +156,10 @@ func fletaloYaToken() error {
 	return nil
 }
 
-func resolveCallbackUrl(port int) (string, int, error) {
+func resolveCallbackUrl() (string, int, error) {
 	apiUri := viper.Get("api_uri")
 
-	url := fmt.Sprintf("%s/auth/url?port=%d", apiUri, port)
+	url := fmt.Sprintf("%s/auth/url", apiUri)
 
 	resp, err := http.Get(url)
 
