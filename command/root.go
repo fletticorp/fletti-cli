@@ -87,7 +87,7 @@ func informImpersonalize(cmd *cobra.Command, args []string) {
 func getUri() string {
 	uri := viper.GetString("api_uri")
 	if uri == "" {
-		log.Fatalf("Api URI not found. Using default (DEFAULT: %s).", defaultURI)
+		log.Printf("Api URI not found. Using default (DEFAULT: %s).", defaultURI)
 		return defaultURI
 	}
 	return uri

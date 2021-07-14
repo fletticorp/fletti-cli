@@ -22,9 +22,13 @@ Available Commands:
   help        Help about any command
   i15n        Impersonalize as other user (nickname)
   login       Get access to FletaloYa! API
+  maps        Contains various maps subcommands
   meli        Contains various meli subcommands
+  offers      Contains various offers subcommands
+  requests    Contains various requests subcommands
+  shippers    Contains various shippers subcommands
   token       Contains various token subcommands
-  user        Contains various user subcommands
+  users       Contains various users subcommands
 
 Flags:
   -h, --help   help for this command
@@ -37,7 +41,6 @@ Use " [command] --help" for more information about a command.
 ### Table of Contents
 - [Description](#description)
 - [Install](#install)
-- [Commands](#commands)
 
 
 ### Description
@@ -47,41 +50,4 @@ You can contribute here by reading our [reference API docs](https://api.fletaloy
 
 ### Install
 
-Just run `./install.sh`. It just copies a bounch of scripts into `/usr/local/bin`.
-You can uninstall them by running `./uninstall.sh`
-
-### Commands
-
-#### Help
-
-It shows the available commands, and it description:
-
-```
-```
-
-#### Login
-
-```
-```
-
-
-#### Me
-
-```
-```
-
-Retrieves the current user information.
-
-#### Roles
-
-```
-```
-
-Retrieves the current user roles.
-
-#### Token Refresh
-
-```
-```
-
-Refresh token
+Just run `make install`.
