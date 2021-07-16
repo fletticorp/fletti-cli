@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -48,7 +49,14 @@ func refreshToken() error {
 	refreshToken := getRefreshToken()
 	uri := getUri()
 
-	response, err := http.Get(fmt.Sprintf("%s/token/refresh?refresh_token=%s", uri, refreshToken))
+	jsonData := map[string]string{"grant_type": "refresh_token", "refresh_token": refreshToken}
+
+	raw, err := json.Marshal(jsonData)
+	if err != nil {
+		return err
+	}
+
+	response, err := http.Post(fmt.Sprintf("%s/oauth2/external/token", uri), "application/json", bytes.NewReader(raw))
 	if err != nil {
 		return err
 	}
@@ -69,7 +77,7 @@ func refreshToken() error {
 		rtKey = fmt.Sprintf("%s.%s", impersonalize, rtKey)
 	}
 
-	viper.Set(atKey, data["id_token"])
+	viper.Set(atKey, data["access_token"])
 	viper.Set(rtKey, data["refresh_token"])
 
 	viper.WriteConfig()
