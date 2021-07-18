@@ -389,9 +389,9 @@ func createNewRequest(description string, addressFrom string, latitudeFrom, long
 	address1 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressFrom}, "latitude": latitudeFrom, "longitude": longitudeFrom}
 	address2 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressTo}, "latitude": latitudeTo, "longitude": longitudeTo}
 	items := []map[string]interface{}{{"description": description, "quantity": 1, "weight": 1}}
-	sections := []map[string]interface{}{map[string]interface{}{"start": map[string]interface{}{"address": address1, "player": sender, "dropins": items, "dropoffs": []map[string]interface{}{}}, "end": map[string]interface{}{"address": address2, "player": receiver, "dropins": []map[string]interface{}{}, "dropoffs": items}}}
+	sections := []map[string]interface{}{map[string]interface{}{"start": map[string]interface{}{"address": address1, "player": sender, "dropins": items, "dropoffs": []map[string]interface{}{}}, "end": map[string]interface{}{"address": address2, "player": receiver, "dropins": []map[string]interface{}{}, "dropoffs": items}, "sla": sla, "distance": distance}}
 
-	postBody := map[string]interface{}{"vehicle_category": vehicle, "sections": sections, "sla": sla, "distance": distance}
+	postBody := map[string]interface{}{"vehicle_category": vehicle, "sections": sections}
 
 	url := fmt.Sprintf("%s/request?authorization=%s", getUri(), getToken())
 	body, err := POST(url, postBody, "new request")
