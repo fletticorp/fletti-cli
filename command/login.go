@@ -30,8 +30,8 @@ var loginCmd = &cobra.Command{
 }
 
 var i15nCmd = &cobra.Command{
-	Use:           "i15n",
-	Short:         "Impersonalize as other user (nickname)",
+	Use:           "i15n nickname",
+	Short:         "Impersonalize as other user (admin role needed, check it with users roles command)",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          i15n,
