@@ -9,7 +9,7 @@ build:
 install: build
 	cp bin/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
 	mkdir -p $(HOME)/.fletaloya
-	cp config.yml $(HOME)/.fletaloya
+	cp -n config.yml $(HOME)/.fletaloya || true
 
 clean:
 	rm -rf bin
