@@ -146,14 +146,14 @@ func POST(url string, body map[string]interface{}, description string) (string, 
 		return "", err
 	}
 
-	if response.StatusCode != 200 {
+	if response.StatusCode != 200 && response.StatusCode != 201 {
 		if response.StatusCode == 401 {
 			return "", fyerrors.ErrorUnauthorized
 		}
 		if err != nil {
 			return "", err
 		} else {
-			return "", fmt.Errorf("Error getting %s: %d", description, response.StatusCode)
+			return "", fmt.Errorf("Error posting %s: %d", description, response.StatusCode)
 		}
 	}
 	defer response.Body.Close()
