@@ -28,6 +28,7 @@ func init() {
 	requestsCmd.AddCommand(priceCmd)
 	requestsCmd.AddCommand(requestAvailabilityCmd)
 	requestsCmd.AddCommand(newRequestCmd)
+	requestsCmd.AddCommand(scheduleRequestCmd)
 	requestsCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 	lastCmd.PersistentFlags().StringVarP(&since, "since", "s", "1d", "Specifies timeframe to search last requests")
 }
@@ -103,12 +104,21 @@ var requestAvailabilityCmd = &cobra.Command{
 }
 
 var newRequestCmd = &cobra.Command{
-	Use:           "new [requestID]",
+	Use:           "new [description] [origin] [destination] [sender (me|cell)] [receiver (me|cell)] [vehicle (bici|auto|van|truck)]",
 	Short:         "Create new request",
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	Args:          cobra.MinimumNArgs(1),
+	Args:          cobra.MinimumNArgs(5),
 	RunE:          newRequest,
+}
+
+var scheduleRequestCmd = &cobra.Command{
+	Use:           "schedule [cron_expression] [description] [origin] [destination] [sender (me|cell)] [receiver (me|cell)] [vehicle (bici|auto|van|truck)]",
+	Short:         "Schedule a request",
+	SilenceErrors: true,
+	SilenceUsage:  true,
+	Args:          cobra.MinimumNArgs(6),
+	RunE:          scheduleRequest,
 }
 
 func last(cmd *cobra.Command, args []string) error {
@@ -272,6 +282,8 @@ func resolveVehicle(vehicleStr string) VehicleCategory {
 	switch vehicleStr {
 	case "bici":
 		vehicle = VehicleCategoryBici
+	case "moto":
+		vehicle = VehicleCategoryBici
 	case "auto":
 		vehicle = VehicleCategoryCar
 	case "miniflete":
@@ -344,24 +356,31 @@ func newRequest(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	vehicle := resolveVehicle(args[3])
-
 	me, err := findMe()
 	if err != nil {
 		return err
 	}
 
+	sender := args[3]
 	var senderBody map[string]interface{}
-	if args[4] == "me" {
-		senderBody = map[string]interface{}{"user": me["id"].(string)}
+	if sender == "me" {
+		senderBody = map[string]interface{}{"id": me["id"].(string)}
 	} else {
-		senderBody = map[string]interface{}{"phone": args[4]}
+		senderBody = map[string]interface{}{"phone": sender}
 	}
+
+	receiver := args[4]
 	var receiverBody map[string]interface{}
-	if args[5] == "me" {
-		receiverBody = map[string]interface{}{"user": me["id"].(string)}
+	if receiver == "me" {
+		receiverBody = map[string]interface{}{"id": me["id"].(string)}
 	} else {
-		receiverBody = map[string]interface{}{"phone": args[5]}
+		receiverBody = map[string]interface{}{"phone": receiver}
+	}
+
+	vehicle := VehicleCategoryBici
+
+	if len(args) > 5 {
+		vehicle = resolveVehicle(args[5])
 	}
 
 	url := fmt.Sprintf("%s/route?points=%f,%f,%f,%f", getUri(), latitude1, longitude1, latitude2, longitude2)
@@ -384,6 +403,67 @@ func newRequest(cmd *cobra.Command, args []string) error {
 	return createNewRequest(description, address1, latitude1, longitude1, senderBody, address2, latitude2, longitude2, receiverBody, vehicle, sla, distance)
 }
 
+func scheduleRequest(cmd *cobra.Command, args []string) error {
+	cronExpression := args[0]
+
+	description := args[1]
+
+	address1, latitude1, longitude1, err := latlng(args[2])
+	if err != nil {
+		return err
+	}
+	address2, latitude2, longitude2, err := latlng(args[3])
+	if err != nil {
+		return err
+	}
+
+	me, err := findMe()
+	if err != nil {
+		return err
+	}
+
+	sender := args[4]
+	var senderBody map[string]interface{}
+	if sender == "me" {
+		senderBody = map[string]interface{}{"id": me["id"].(string)}
+	} else {
+		senderBody = map[string]interface{}{"phone": sender}
+	}
+
+	receiver := args[5]
+	var receiverBody map[string]interface{}
+	if receiver == "me" {
+		receiverBody = map[string]interface{}{"id": me["id"].(string)}
+	} else {
+		receiverBody = map[string]interface{}{"phone": receiver}
+	}
+
+	vehicle := VehicleCategoryBici
+
+	if len(args) > 6 {
+		vehicle = resolveVehicle(args[6])
+	}
+
+	url := fmt.Sprintf("%s/route?points=%f,%f,%f,%f", getUri(), latitude1, longitude1, latitude2, longitude2)
+	body, err := GET(url, "route info")
+
+	if err != nil {
+		return err
+	}
+
+	route := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(body), &route)
+	if err != nil {
+		return err
+	}
+
+	distance := route["distance"].(float64)
+	sla := route["commitment"].(float64) + 1800
+
+	return scheduleNewRequest(cronExpression, description, address1, latitude1, longitude1, senderBody, address2, latitude2, longitude2, receiverBody, vehicle, sla, distance)
+}
+
 func createNewRequest(description string, addressFrom string, latitudeFrom, longitudeFrom float64, sender map[string]interface{}, addressTo string, latitudeTo, longitudeTo float64, receiver map[string]interface{}, vehicle VehicleCategory, sla, distance float64) error {
 
 	address1 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressFrom}, "latitude": latitudeFrom, "longitude": longitudeFrom}
@@ -395,6 +475,26 @@ func createNewRequest(description string, addressFrom string, latitudeFrom, long
 
 	url := fmt.Sprintf("%s/request?authorization=%s", getUri(), getToken())
 	body, err := POST(url, postBody, "new request")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\v", body)
+
+	return nil
+}
+
+func scheduleNewRequest(cronExpression, description, addressFrom string, latitudeFrom, longitudeFrom float64, sender map[string]interface{}, addressTo string, latitudeTo, longitudeTo float64, receiver map[string]interface{}, vehicle VehicleCategory, sla, distance float64) error {
+
+	address1 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressFrom}, "latitude": latitudeFrom, "longitude": longitudeFrom}
+	address2 := map[string]interface{}{"address_lines": map[string]interface{}{"0": addressTo}, "latitude": latitudeTo, "longitude": longitudeTo}
+	items := []map[string]interface{}{{"description": description, "quantity": 1, "weight": 1}}
+	sections := []map[string]interface{}{map[string]interface{}{"start": map[string]interface{}{"address": address1, "player": sender, "dropins": items, "dropoffs": []map[string]interface{}{}}, "end": map[string]interface{}{"address": address2, "player": receiver, "dropins": []map[string]interface{}{}, "dropoffs": items}, "sla": sla, "distance": distance}}
+
+	postBody := map[string]interface{}{"vehicle_category": vehicle, "sections": sections, "cron_expression": cronExpression}
+
+	url := fmt.Sprintf("%s/schedule/request?authorization=%s", getUri(), getToken())
+	body, err := POST(url, postBody, "new schedule")
 
 	if err != nil {
 		return err
