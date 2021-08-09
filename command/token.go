@@ -15,6 +15,7 @@ func init() {
 	rootCmd.AddCommand(tokenCmd)
 	tokenCmd.AddCommand(refreshCmd)
 	tokenCmd.AddCommand(showCmd)
+	tokenCmd.PersistentFlags().StringVarP(&impersonalize, "impersonalize", "i", "me", "Run command impersonalized as other user (nickname)")
 }
 
 var tokenCmd = &cobra.Command{
