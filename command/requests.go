@@ -85,7 +85,7 @@ var requestDetailCmd = &cobra.Command{
 }
 
 var priceCmd = &cobra.Command{
-	Use:           "price [origin] [destination] [vehicle]",
+	Use:           "price [site] [origin] [destination] [vehicle]",
 	Short:         "Show request price",
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -240,11 +240,13 @@ func requestDetail(cmd *cobra.Command, args []string) error {
 
 func price(cmd *cobra.Command, args []string) error {
 
-	_, lat1, lng1, err := latlng(args[0])
+	siteID := args[0]
+
+	_, lat1, lng1, err := latlng(args[1])
 	if err != nil {
 		return err
 	}
-	_, lat2, lng2, err := latlng(args[1])
+	_, lat2, lng2, err := latlng(args[2])
 	if err != nil {
 		return err
 	}
@@ -262,10 +264,10 @@ func price(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	vehicle := resolveVehicle(args[2])
+	vehicle := resolveVehicle(args[3])
 	distance := int(route["distance"].(float64) / 1000)
 
-	url = fmt.Sprintf("%s/price?weight=%d&items=%d&sections=%d&vehicle=%d&distance=%d", getUri(), 1, 1, 1, vehicle, distance)
+	url = fmt.Sprintf("%s/price?site_id=%s&weight=%d&items=%d&sections=%d&vehicle=%d&distance=%d", getUri(), siteID, 1, 1, 1, vehicle, distance)
 	priceBody, err := GET(url, "price")
 	if err != nil {
 		return err
