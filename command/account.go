@@ -22,7 +22,7 @@ var accountCmd = &cobra.Command{
 
 var showAccountCmd = &cobra.Command{
 	Use:           "show",
-	Short:         "Shows route availability",
+	Short:         "Shows user's account information",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          showAccount,
