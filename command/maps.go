@@ -62,7 +62,7 @@ func geocode(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	out := map[string]interface{}{"address": address, "neighborhod": doc["neighborhod"], "zone": doc["zone"]}
+	out := map[string]interface{}{"address": address, "neighborhod": doc["neighborhod"], "zone": doc["zone"], "latitude": latitude, "longitude": longitude}
 
 	jsonString, err := json.Marshal(out)
 	if err != nil {
