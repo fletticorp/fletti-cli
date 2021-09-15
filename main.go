@@ -16,7 +16,7 @@ func main() {
 	if configFile != "" {
 		viper.SetConfigName(configFile)
 		viper.SetConfigType("yml")
-		viper.AddConfigPath("$HOME/.fletaloya/")
+		viper.AddConfigPath("$HOME/.fletti/")
 		_ = viper.ReadInConfig()
 	}
 	command.Execute()

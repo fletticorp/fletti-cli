@@ -41,7 +41,7 @@ https://github.com/fletaloya/fletalo-cli
 `,
 }
 
-const defaultURI = "https://api.fletaloya.com"
+const defaultURI = "https://api.fletti.com"
 
 var (
 	Info = Teal

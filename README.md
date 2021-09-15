@@ -46,7 +46,7 @@ Use " [command] --help" for more information about a command.
 ### Description
 
 Command line interface for using FletaloYA services through REST api calls.
-You can contribute here by reading our [reference API docs](https://api.fletaloya.com/docs/index.html).
+You can contribute here by reading our [reference API docs](https://api.fletti.com/docs/index.html).
 
 ### Install
 

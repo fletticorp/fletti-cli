@@ -8,8 +8,8 @@ build:
 
 install: build
 	cp bin/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
-	mkdir -p $(HOME)/.fletaloya
-	cp -n config.yml $(HOME)/.fletaloya || true
+	mkdir -p $(HOME)/.fletti
+	cp -n config.yml $(HOME)/.fletti || true
 
 clean:
 	rm -rf bin

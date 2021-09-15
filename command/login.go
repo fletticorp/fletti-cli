@@ -175,7 +175,10 @@ func exchangeToken(code, redirectUri string) (string, string, error) {
 		return accessToken, refreshToken, nil
 	}
 
-	return "", "", fmt.Errorf("Error getting token: %d", resp.StatusCode)
+	var dat map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&dat)
+
+	return "", "", fmt.Errorf("Error getting token: %d - %v", resp.StatusCode, dat)
 }
 
 func openbrowser(url string) {
