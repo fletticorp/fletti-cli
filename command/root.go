@@ -12,7 +12,7 @@ import (
 	"os"
 	"reflect"
 
-	fyerrors "github.com/fletaloya/fletalo-cli/errors"
+	fyerrors "github.com/fletticorp/fletti-cli/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,22 +22,22 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Short:            "Command line interface for FletaloYA services",
+	Short:            "Command line interface for Fletti services",
 	Example:          "flysh --help",
 	PersistentPreRun: informImpersonalize,
 	SilenceErrors:    true,
 	SilenceUsage:     true,
 	Long: `
-Welcome to the FletaloYA cli
+Welcome to the Fletti CLI
 
-________________.___. _________ ___ ___
-\_   _____/\__  |   |/   _____//   |   \
- |    __)   /   |   |\_____  \/    ~    \
- |     \    \____   |/        \    Y    /
- \___  /    / ______/_______  /\___|_  /
-     \/     \/              \/       \/
+___________.__                .__
+\_   _____/|  |   ____   _____|  |__
+ |    __)  |  | _/ __ \ /  ___/  |  \
+ |     \   |  |_\  ___/ \___ \|   Y  \
+ \___  /   |____/\___  >____  >___|  /
+     \/              \/     \/     \/
 
-https://github.com/fletaloya/fletalo-cli
+https://github.com/fletticorp/fletti-cli
 `,
 }
 

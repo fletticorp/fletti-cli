@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/fletaloya/fletalo-cli/command"
+	"github.com/fletticorp/fletti-cli/command"
 	"github.com/spf13/viper"
 )
 

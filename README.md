@@ -1,16 +1,17 @@
-# FletaloYA Command Line Interface
+# Fletti Command Line Interface
 
 ```
-Welcome to the FletaloYA cli
+Welcome to the Fletti CLI
 
-________________.___. _________ ___ ___
-\_   _____/\__  |   |/   _____//   |   \
- |    __)   /   |   |\_____  \/    ~    \
- |     \    \____   |/        \    Y    /
- \___  /    / ______/_______  /\___|_  /
-     \/     \/              \/       \/
+___________.__                .__
+\_   _____/|  |   ____   _____|  |__
+ |    __)  |  | _/ __ \ /  ___/  |  \
+ |     \   |  |_\  ___/ \___ \|   Y  \
+ \___  /   |____/\___  >____  >___|  /
+     \/              \/     \/     \/
 
-https://github.com/fletaloya/fletalo-cli
+
+https://github.com/fletti/fletti-cli
 
 Usage:
    [command]
@@ -19,16 +20,21 @@ Examples:
 flysh --help
 
 Available Commands:
+  account     Contains various account subcommands
+  clouds      Contains various clouds subcommands
+  ecommerce   Contains various ecommerce subcommands
   help        Help about any command
-  i15n        Impersonalize as other user (nickname)
-  login       Get access to FletaloYa! API
+  i15n        Impersonalize as other user (admin role needed, check it with users roles command)
+  login       Get access to Fletti API
   maps        Contains various maps subcommands
-  meli        Contains various meli subcommands
   offers      Contains various offers subcommands
   requests    Contains various requests subcommands
+  route       Contains various route subcommands
+  scheduling  Contains various scheduling subcommands
   shippers    Contains various shippers subcommands
   token       Contains various token subcommands
   users       Contains various users subcommands
+  wallet      Contains various wallet subcommands
 
 Flags:
   -h, --help   help for this command
@@ -36,7 +42,7 @@ Flags:
 Use " [command] --help" for more information about a command.
 ```
 
-## FletaloYA! Desde tu consola!
+## Fletti Desde tu consola!
 
 ### Table of Contents
 - [Description](#description)
@@ -45,7 +51,7 @@ Use " [command] --help" for more information about a command.
 
 ### Description
 
-Command line interface for using FletaloYA services through REST api calls.
+Command line interface for using Fletti services through REST api calls.
 You can contribute here by reading our [reference API docs](https://api.fletti.com/docs/index.html).
 
 ### Install

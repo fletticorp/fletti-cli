@@ -23,7 +23,7 @@ func init() {
 
 var loginCmd = &cobra.Command{
 	Use:           "login",
-	Short:         "Get access to FletaloYa! API",
+	Short:         "Get access to Fletti API",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	RunE:          login,
@@ -38,7 +38,7 @@ var i15nCmd = &cobra.Command{
 }
 
 func login(cmd *cobra.Command, args []string) error {
-	return fletaloYaToken()
+	return flettiToken()
 }
 
 func ensureAuth(cmd *cobra.Command, args []string) error {
@@ -67,7 +67,7 @@ func ensureAuth(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := fletaloYaToken(); err == nil {
+	if err := flettiToken(); err == nil {
 		return nil
 	}
 
@@ -85,7 +85,7 @@ func isAuth() bool {
 	return false
 }
 
-func fletaloYaToken() error {
+func flettiToken() error {
 
 	c := make(chan bool, 1)
 
