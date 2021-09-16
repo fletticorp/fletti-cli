@@ -1,4 +1,4 @@
-module github.com/fletaloya/fletalo-cli
+module github.com/fletticorp/fletti-cli
 
 go 1.13
 

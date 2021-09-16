@@ -1,5 +1,5 @@
 GOCMD=go
-BINARY_NAME=fysh
+BINARY_NAME=flesh
 
 all: clean lint test build
 
@@ -8,8 +8,8 @@ build:
 
 install: build
 	cp bin/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
-	mkdir -p $(HOME)/.fletaloya
-	cp -n config.yml $(HOME)/.fletaloya || true
+	mkdir -p $(HOME)/.fletti
+	cp -n config.yml $(HOME)/.fletti || true
 
 clean:
 	rm -rf bin

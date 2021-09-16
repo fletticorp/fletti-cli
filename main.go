@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/fletaloya/fletalo-cli/command"
+	"github.com/fletticorp/fletti-cli/command"
 	"github.com/spf13/viper"
 )
 
@@ -16,7 +16,7 @@ func main() {
 	if configFile != "" {
 		viper.SetConfigName(configFile)
 		viper.SetConfigType("yml")
-		viper.AddConfigPath("$HOME/.fletaloya/")
+		viper.AddConfigPath("$HOME/.fletti/")
 		_ = viper.ReadInConfig()
 	}
 	command.Execute()
