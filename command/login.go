@@ -1,14 +1,12 @@
 package command
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"runtime"
 
@@ -94,29 +92,20 @@ func flettiToken() error {
 
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		code := r.FormValue("code")
+		accessToken := r.URL.Query().Get("access_token")
+		refreshToken := r.URL.Query().Get("refresh_token")
 
-		if code != "" {
+		viper.Set("access_token", accessToken)
+		viper.Set("refresh_token", refreshToken)
 
-			accessToken, refreshToken, err := exchangeToken(code, "http://localhost:9876")
-			if err != nil {
-				log.Fatalf("error: %s", err.Error())
-				os.Exit(1)
-			}
+		viper.WriteConfig()
 
-			viper.Set("access_token", accessToken)
-			viper.Set("refresh_token", refreshToken)
+		fmt.Fprintf(w, "Successful Login!")
 
-			viper.WriteConfig()
-
-			fmt.Fprintf(w, "Successful Login!")
-
-			c <- true
-		}
-
+		c <- true
 	})
 
-	url := fmt.Sprintf("%s/oauth2/external/authorize", viper.Get("api_uri"))
+	url := "https://www.fletti.com/login/flesh"
 
 	openbrowser(url)
 
@@ -137,48 +126,6 @@ func flettiToken() error {
 	}
 
 	return nil
-}
-
-func exchangeToken(code, redirectUri string) (string, string, error) {
-
-	apiUri := viper.Get("api_uri")
-
-	url := fmt.Sprintf("%s/oauth2/external/token", apiUri)
-
-	jsonData := make(map[string]interface{})
-
-	jsonData["code"] = code
-	jsonData["redirect_uri"] = redirectUri
-	jsonData["grant_type"] = "authorization_code"
-
-	data, err := json.Marshal(jsonData)
-	if err != nil {
-		return "", "", err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewReader(data))
-
-	if err != nil {
-		return "", "", err
-	}
-
-	if resp.StatusCode == http.StatusOK {
-		defer resp.Body.Close()
-
-		var dat map[string]interface{}
-
-		json.NewDecoder(resp.Body).Decode(&dat)
-
-		accessToken := dat["access_token"].(string)
-		refreshToken := dat["refresh_token"].(string)
-
-		return accessToken, refreshToken, nil
-	}
-
-	var dat map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&dat)
-
-	return "", "", fmt.Errorf("Error getting token: %d - %v", resp.StatusCode, dat)
 }
 
 func openbrowser(url string) {

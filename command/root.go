@@ -23,7 +23,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Short:            "Command line interface for Fletti services",
-	Example:          "flysh --help",
+	Example:          "flesh --help",
 	PersistentPreRun: informImpersonalize,
 	SilenceErrors:    true,
 	SilenceUsage:     true,

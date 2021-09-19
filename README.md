@@ -17,7 +17,7 @@ Usage:
    [command]
 
 Examples:
-flysh --help
+flesh --help
 
 Available Commands:
   account     Contains various account subcommands
