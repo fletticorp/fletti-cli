@@ -57,7 +57,7 @@ func refreshToken() error {
 		return err
 	}
 
-	response, err := http.Post(fmt.Sprintf("%s/oauth2/external/token", uri), "application/json", bytes.NewReader(raw))
+	response, err := http.Post(fmt.Sprintf("%s/oauth2/flesh/token", uri), "application/json", bytes.NewReader(raw))
 	if err != nil {
 		return err
 	}
