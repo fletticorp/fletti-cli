@@ -3,6 +3,7 @@ package command
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -85,7 +86,7 @@ var requestDetailCmd = &cobra.Command{
 }
 
 var priceCmd = &cobra.Command{
-	Use:           "price [site] [origin] [destination] [vehicle]",
+	Use:           "price [site] [origin] [destination] [vehicle] [assistants] [floors]",
 	Short:         "Show request price",
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -267,7 +268,16 @@ func price(cmd *cobra.Command, args []string) error {
 	vehicle := resolveVehicle(args[3])
 	distance := int(route["distance"].(float64) / 1000)
 
-	url = fmt.Sprintf("%s/price?site_id=%s&weight=%d&items=%d&sections=%d&vehicle=%d&distance=%d", getUri(), siteID, 1, 1, 1, vehicle, distance)
+	assistants := 0
+	if len(args) > 4 {
+		assistants, _ = strconv.Atoi(args[4])
+	}
+	floors := 0
+	if len(args) > 5 {
+		floors, _ = strconv.Atoi(args[5])
+	}
+
+	url = fmt.Sprintf("%s/price?site_id=%s&weight=%d&items=%d&sections=%d&vehicle=%d&distance=%d&assistants=%d&floors=%d", getUri(), siteID, 1, 1, 1, vehicle, distance, assistants, floors)
 	priceBody, err := GET(url, "price")
 	if err != nil {
 		return err
