@@ -123,7 +123,7 @@ var scheduleRequestCmd = &cobra.Command{
 }
 
 func last(cmd *cobra.Command, args []string) error {
-	url := fmt.Sprintf("%s/requests/last?since=%s&authorization=%s", getUri(), since, getToken())
+	url := fmt.Sprintf("%s/clouds/requests/last?since=%s&authorization=%s", getUri(), since, getToken())
 	body, err := GET(url, "last requests")
 	if err != nil {
 		return err
