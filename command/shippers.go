@@ -83,7 +83,7 @@ func availability(cmd *cobra.Command, args []string) error {
 }
 
 func shipperRequests(cmd *cobra.Command, args []string) error {
-	url := fmt.Sprintf("%s/shipper/requests/%s?authorization=%s", getUri(), args[0], getToken())
+	url := fmt.Sprintf("%s/clouds/shipper/requests/%s?authorization=%s", getUri(), args[0], getToken())
 	body, err := GET(url, "shipper requests")
 
 	if err != nil {
