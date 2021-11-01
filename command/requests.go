@@ -17,6 +17,7 @@ const (
 	VehicleCategoryCar
 	VehicleCategoryVan
 	VehicleCategoryTruck
+	VehicleCategoryDrone
 )
 
 func init() {
@@ -302,6 +303,8 @@ func resolveVehicle(vehicleStr string) VehicleCategory {
 		vehicle = VehicleCategoryVan
 	case "camion":
 		vehicle = VehicleCategoryTruck
+	case "drone":
+		vehicle = VehicleCategoryDrone
 	}
 
 	return vehicle
