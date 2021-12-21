@@ -17,6 +17,7 @@ const (
 	VehicleCategoryCar
 	VehicleCategoryVan
 	VehicleCategoryTruck
+	VehicleCategoryDrone
 )
 
 func init() {
@@ -302,6 +303,8 @@ func resolveVehicle(vehicleStr string) VehicleCategory {
 		vehicle = VehicleCategoryVan
 	case "camion":
 		vehicle = VehicleCategoryTruck
+	case "drone":
+		vehicle = VehicleCategoryDrone
 	}
 
 	return vehicle
@@ -389,13 +392,15 @@ func newRequest(cmd *cobra.Command, args []string) error {
 		receiverBody = map[string]interface{}{"phone": receiver}
 	}
 
-	vehicle := VehicleCategoryBici
+	vehicleStr := "bici"
 
 	if len(args) > 5 {
-		vehicle = resolveVehicle(args[5])
+		vehicleStr = args[5]
 	}
 
-	url := fmt.Sprintf("%s/route?points=%f,%f,%f,%f", getUri(), latitude1, longitude1, latitude2, longitude2)
+	vehicle := resolveVehicle(vehicleStr)
+
+	url := fmt.Sprintf("%s/route?vehicle=%s&points=%f,%f,%f,%f", getUri(), vehicleStr, latitude1, longitude1, latitude2, longitude2)
 	body, err := GET(url, "route info")
 
 	if err != nil {
@@ -450,13 +455,15 @@ func scheduleRequest(cmd *cobra.Command, args []string) error {
 		receiverBody = map[string]interface{}{"phone": receiver}
 	}
 
-	vehicle := VehicleCategoryBici
+	vehicleStr := "bici"
 
 	if len(args) > 6 {
-		vehicle = resolveVehicle(args[6])
+		vehicleStr = args[6]
 	}
 
-	url := fmt.Sprintf("%s/route?points=%f,%f,%f,%f", getUri(), latitude1, longitude1, latitude2, longitude2)
+	vehicle := resolveVehicle(vehicleStr)
+
+	url := fmt.Sprintf("%s/route?vehicle=%s&points=%f,%f,%f,%f", getUri(), vehicleStr, latitude1, longitude1, latitude2, longitude2)
 	body, err := GET(url, "route info")
 
 	if err != nil {
