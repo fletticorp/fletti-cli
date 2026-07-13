@@ -12,11 +12,14 @@ var since string
 
 type VehicleCategory int
 
+// Must mirror model.VehicleCategory in fletti-api: the index selects the row of
+// the pricing model, so a wrong one prices the shipment against another vehicle.
 const (
 	VehicleCategoryBici VehicleCategory = iota
 	VehicleCategoryCar
 	VehicleCategoryVan
 	VehicleCategoryTruck
+	VehicleCategoryRover
 	VehicleCategoryDrone
 )
 
@@ -303,6 +306,8 @@ func resolveVehicle(vehicleStr string) VehicleCategory {
 		vehicle = VehicleCategoryVan
 	case "camion":
 		vehicle = VehicleCategoryTruck
+	case "rover":
+		vehicle = VehicleCategoryRover
 	case "drone":
 		vehicle = VehicleCategoryDrone
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -68,7 +69,7 @@ func Color(colorString string) func(...interface{}) string {
 	return sprint
 }
 
-//Execute root command
+// Execute root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
@@ -163,31 +164,53 @@ func POST(url string, body map[string]interface{}, description string) (string, 
 }
 
 func PUT(url string, body map[string]interface{}, description string) (string, error) {
+	return do(http.MethodPut, url, body, description)
+}
 
-	jsonData, err := json.Marshal(body)
-	if err != nil {
-		return "", err
-	}
+func PATCH(url string, body map[string]interface{}, description string) (string, error) {
+	return do(http.MethodPatch, url, body, description)
+}
 
-	response, err := http.Post(url, "application/json", bytes.NewReader(jsonData))
+func DELETE(url string, description string) (string, error) {
+	return do(http.MethodDelete, url, nil, description)
+}
 
-	if err != nil {
-		return "", err
-	}
+// do issues a request with the method it is given. PUT used to be sent as a
+// POST, which worked only because the API does not enforce methods.
+func do(method, url string, body map[string]interface{}, description string) (string, error) {
 
-	if response.StatusCode != 200 {
-		if response.StatusCode == 401 {
-			return "", fyerrors.ErrorUnauthorized
-		}
+	var payload io.Reader
+	if body != nil {
+		jsonData, err := json.Marshal(body)
 		if err != nil {
 			return "", err
-		} else {
-			return "", fmt.Errorf("Error in put %s: %d", description, response.StatusCode)
 		}
+		payload = bytes.NewReader(jsonData)
+	}
+
+	request, err := http.NewRequest(method, url, payload)
+	if err != nil {
+		return "", err
+	}
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return "", err
 	}
 	defer response.Body.Close()
-	bytes, _ := ioutil.ReadAll(response.Body)
-	return string(bytes), nil
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return "", fyerrors.ErrorUnauthorized
+	}
+
+	responseBody, _ := ioutil.ReadAll(response.Body)
+
+	if response.StatusCode < 200 || response.StatusCode > 299 {
+		return "", fmt.Errorf("Error in %s %s: %d: %s", method, description, response.StatusCode, string(responseBody))
+	}
+
+	return string(responseBody), nil
 }
 
 func scaleImage(img image.Image, w int) (*image.Image, int, int) {
